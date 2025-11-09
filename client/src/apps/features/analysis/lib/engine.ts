@@ -18,7 +18,7 @@ class Engine {
     private evaluating = false;
 
     constructor(version: EngineVersion) {
-        this.worker = new Worker("engines/" + version);
+        this.worker = new Worker("/engines/" + version);
         this.version = version;
 
         this.worker.postMessage("uci");
