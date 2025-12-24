@@ -5,11 +5,11 @@ import { ToastContainer } from "react-toastify";
 
 import useSettingsStore from "@/stores/SettingsStore";
 import useAnnouncement from "@/hooks/api/useAnnouncement";
+import useAnalyticsTag from "@/hooks/useAnalyticsTag";
 import Announcement from "@/components/layout/Announcement";
 import NavigationBar from "@/components/layout/NavigationBar";
 import Footer from "@/components/layout/Footer";
 import BugReportingWidget from "@/components/BugReportingWidget";
-import AnalyticsTag from "@/components/AnalyticsTag";
 
 import PageWrapperProps from "./PageWrapperProps";
 import * as styles from "./PageWrapper.module.css";
@@ -25,6 +25,8 @@ function PageWrapper({
     footerClassName,
     footerStyle
 }: PageWrapperProps) {
+    useAnalyticsTag();
+
     const bugReportingMode = useSettingsStore(
         state => state.settings.bugReportingMode
     );
@@ -34,8 +36,6 @@ function PageWrapper({
     const [ announcementOpen, setAnnouncementOpen ] = useState(true);
 
     return <QueryClientProvider client={queryClient}>
-        <AnalyticsTag/>
-
         <div className={className} style={style}>
             {announcementOpen && announcementStatus == "success"
                 && <Announcement
