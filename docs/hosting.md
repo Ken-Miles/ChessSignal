@@ -6,7 +6,8 @@
 
 - Git
 - Node.js 22 or later
-- Docker if you want to host with that
+- MongoDB
+- Docker, if you want to host with that
 
 ## Setup
 
@@ -130,6 +131,7 @@ npm start
 ```
 
 The server will begin listening on the port that you defined in the environment variables, or `8080` if you have not defined one.
+Make sure you have your database running.
 
 ## Deploy with Docker
 
