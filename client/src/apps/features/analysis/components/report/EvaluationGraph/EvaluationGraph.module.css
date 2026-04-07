@@ -1,15 +1,16 @@
 .wrapper {
     display: flex;
     flex-direction: column;
-    gap: 5px;
-    padding: 5px;
-    border-radius: 10px;
-    background-color: var(--ui-shade-4);
+    gap: 4px;
+    padding: 6px;
+    border-radius: 6px;
+    border: 1px solid #373a3f;
+    background-color: #2a2d31;
 }
 
 .chart {
-    border-radius: 10px;
-    background-color: #1f1f1f;
+    border-radius: 6px;
+    background-color: #1b1d20;
 
     cursor: pointer !important;
     overflow: hidden;
@@ -18,11 +19,11 @@
 .tooltip {
     display: flex;
     flex-direction: column;
-    padding: 5px;
+    padding: 4px 6px;
 
-    border: 1px solid black;
-    border-radius: 5px;
-    background-color: rgba(255, 255, 255, 0.75);
+    border: 1px solid #1a1a1a;
+    border-radius: 4px;
+    background-color: rgba(255, 255, 255, 0.85);
 }
 
 .tooltipEvaluation {

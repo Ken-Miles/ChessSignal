@@ -1,19 +1,19 @@
 import { Classification } from "shared/constants/Classification";
 
-import iconClassificationsBrilliant from "@assets/img/classifications/brilliant.png";
-import iconClassificationsCritical from "@assets/img/classifications/critical.png";
-import iconClassificationsBest from "@assets/img/classifications/best.png";
-import iconClassificationsExcellent from "@assets/img/classifications/excellent.png";
-import iconClassificationsOkay from "@assets/img/classifications/okay.png";
-import iconClassificationsInaccuracy from "@assets/img/classifications/inaccuracy.png";
-import iconClassificationsMistake from "@assets/img/classifications/mistake.png";
-import iconClassificationsBlunder from "@assets/img/classifications/blunder.png";
-import iconClassificationsForced from "@assets/img/classifications/forced.png";
-import iconClassificationsTheory from "@assets/img/classifications/theory.png";
-import iconClassificationsRisky from "@assets/img/classifications/risky.png";
+const iconClassificationsBrilliant = "/img/classifications/brilliant.png";
+const iconClassificationsCritical = "/img/classifications/critical.png";
+const iconClassificationsBest = "/img/classifications/best.png";
+const iconClassificationsExcellent = "/img/classifications/excellent.png";
+const iconClassificationsOkay = "/img/classifications/okay.png";
+const iconClassificationsInaccuracy = "/img/classifications/inaccuracy.png";
+const iconClassificationsMistake = "/img/classifications/mistake.png";
+const iconClassificationsBlunder = "/img/classifications/blunder.png";
+const iconClassificationsForced = "/img/classifications/forced.png";
+const iconClassificationsTheory = "/img/classifications/theory.png";
+const iconClassificationsRisky = "/img/classifications/risky.png";
 
-import iconClassificationsLoading from "@assets/img/classifications/loading.png";
-import iconClassificationsError from "@assets/img/classifications/error.png";
+const iconClassificationsLoading = "/img/classifications/loading.png";
+const iconClassificationsError = "/img/classifications/error.png";
 
 export const classificationImages = {
     [Classification.BRILLIANT]: iconClassificationsBrilliant,

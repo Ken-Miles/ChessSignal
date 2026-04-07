@@ -13,6 +13,21 @@
     src: url("../public/fonts/nunito.ttf")
 }
 
+@font-face {
+    font-family: "Chess V3";
+    src:
+        url("../public/img/pieces/chesscom/fonts/chessglyph-v3.3e78f81f.woff2") format("woff2"),
+        url("../public/img/pieces/chesscom/fonts/chessglyph-v3.3e78f81f.ttf") format("truetype");
+    font-display: block;
+}
+
+@font-face {
+    font-family: "Chess Sans";
+    src: url("../public/img/pieces/chesscom/fonts/chess-sans-700.3c2edc9b.woff2") format("woff2");
+    font-weight: 700;
+    font-display: swap;
+}
+
 :root {
     --ui-blue: #467de8;
     --ui-lavender: #625eb1;
@@ -36,6 +51,46 @@ body {
 
 * {
     font-family: "Noto Sans";
+}
+
+:global(.icon-font-chess) {
+    display: inline-block;
+    width: 1em;
+    height: 1em;
+    line-height: 1;
+    text-align: center;
+    vertical-align: middle;
+}
+
+:global(.icon-font-chess)::before {
+    display: inline-block;
+    font-family: "Chess V3", "Noto Sans Symbols 2", "Segoe UI Symbol", "Noto Sans", sans-serif;
+    font-size: 1em;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 1;
+    text-rendering: geometricPrecision;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+:global(.icon-font-chess.bishop-fill)::before { content: "\e900"; }
+:global(.icon-font-chess.bishop-stroke)::before { content: "\e901"; }
+:global(.icon-font-chess.king-fill)::before { content: "\e903"; }
+:global(.icon-font-chess.king-stroke)::before { content: "\e904"; }
+:global(.icon-font-chess.knight-fill)::before { content: "\e905"; }
+:global(.icon-font-chess.knight-stroke)::before { content: "\e906"; }
+:global(.icon-font-chess.pawn-fill)::before { content: "\e907"; }
+:global(.icon-font-chess.pawn-stroke)::before { content: "\e908"; }
+:global(.icon-font-chess.queen-fill)::before { content: "\e909"; }
+:global(.icon-font-chess.queen-stroke)::before { content: "\e90a"; }
+:global(.icon-font-chess.rook-fill)::before { content: "\e90b"; }
+:global(.icon-font-chess.rook-stroke)::before { content: "\e90c"; }
+
+:global(.cc-user-block-component),
+:global(.cc-user-username-component),
+:global(.cc-user-rating-white) {
+    font-family: "Chess Sans", "Nunito", "Noto Sans", sans-serif;
 }
 
 ::-webkit-scrollbar {

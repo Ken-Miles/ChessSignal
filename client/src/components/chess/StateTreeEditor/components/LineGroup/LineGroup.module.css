@@ -2,6 +2,14 @@
     display: flex;
     align-items: center;
     flex-wrap: wrap;
-    gap: 7px;
+    gap: 4px;
     position: relative;
+    min-height: 22px;
+}
+
+.moveNumber {
+    min-width: 24px;
+    color: #8f969f;
+    font-size: 0.82rem;
+    font-weight: 700;
 }

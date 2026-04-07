@@ -5,19 +5,18 @@ import {
     YAxis,
     AreaChart,
     Area,
+    CartesianGrid,
     Tooltip,
     ReferenceLine,
     ReferenceDot
 } from "recharts";
-import { max } from "lodash-es";
 
-import { StateTreeNode } from "shared/types/game/position/StateTreeNode";
 import Evaluation from "shared/types/game/position/Evaluation";
 import { defaultEvaluation } from "shared/constants/utils";
-import PieceColour from "shared/constants/PieceColour";
 import { Classification } from "shared/constants/Classification";
 import { getTopEngineLine } from "shared/types/game/position/EngineLine";
 import { classificationColours } from "@analysis/constants/classifications";
+import useAnalysisBoardStore from "@analysis/stores/AnalysisBoardStore";
 
 import EvaluationGraphPoint from "./Point";
 import TooltipRenderer from "./TooltipRenderer";
@@ -27,30 +26,35 @@ import * as styles from "./EvaluationGraph.module.css";
 const highlightedClassifications: Classification[] = [
     Classification.BRILLIANT,
     Classification.CRITICAL,
+    Classification.RISKY,
     Classification.INACCURACY,
     Classification.MISTAKE,
     Classification.BLUNDER
 ];
 
+const CHESSCOM_GRAPH_ABS_CP = 1000;
+const CHESSCOM_GRAPH_MATE_CP = 1100;
+
 function getGraphY(
-    node: StateTreeNode,
     evaluation: Evaluation,
-    graphHeight: number
+    perspectiveMultiplier: number
 ) {
+    let graphValue = 0;
+
     if (evaluation.type == "mate") {
-        if (evaluation.value == 0) {
-            if (node.state.moveColour == undefined) {
-                return graphHeight / 2;
-            }
-
-            return node.state.moveColour == PieceColour.WHITE
-                ? graphHeight : 0;
-        }
-
-        return evaluation.value >= 0 ? graphHeight : 0;
+        graphValue = evaluation.value == 0
+            ? 0
+            : evaluation.value > 0
+                ? CHESSCOM_GRAPH_MATE_CP
+                : -CHESSCOM_GRAPH_MATE_CP;
+    } else {
+        graphValue = Math.max(
+            -CHESSCOM_GRAPH_MATE_CP,
+            Math.min(CHESSCOM_GRAPH_MATE_CP, evaluation.value)
+        );
     }
 
-    return evaluation.value + (graphHeight / 2);
+    return graphValue * perspectiveMultiplier;
 }
 
 function EvaluationGraph({
@@ -60,28 +64,23 @@ function EvaluationGraph({
     selectedIndex,
     onPointClick
 }: EvaluationGraphProps) {
-    const absoluteHighestValue = max(
-        nodes.map(node => Math.abs(
-            getTopEngineLine(node.state.engineLines)?.evaluation.value || 0
-        ))
-    ) || 0;
-
-    const yAxisPadding = absoluteHighestValue * 0.2;
+    const boardFlipped = useAnalysisBoardStore(state => state.boardFlipped);
+    const perspectiveMultiplier = boardFlipped ? -1 : 1;
 
     const dataPoints = nodes.map((node, index) => {
         const evaluation = getTopEngineLine(node.state.engineLines)?.evaluation
             || defaultEvaluation;
-
-        const graphHeight = (absoluteHighestValue + yAxisPadding) * 2;
 
         return {
             nodeId: node.id,
             state: node.state,
             evaluation: evaluation,
             x: index,
-            y: getGraphY(node, evaluation, graphHeight)
+            y: getGraphY(evaluation, perspectiveMultiplier)
         } as EvaluationGraphPoint;
     });
+    const yAxisMin = -CHESSCOM_GRAPH_ABS_CP;
+    const yAxisMax = CHESSCOM_GRAPH_ABS_CP;
 
     const highlightedPoints = dataPoints.filter(point => (
         point.state.classification
@@ -113,21 +112,27 @@ function EvaluationGraph({
                 }}
             >
                 <XAxis hide dataKey="x"/>
-                <YAxis hide domain={[
-                    0, absoluteHighestValue * 2 + (yAxisPadding * 2)
-                ]}/>
+                <YAxis hide domain={[yAxisMin, yAxisMax]} tickCount={5}/>
+
+                <CartesianGrid
+                    vertical={false}
+                    stroke="rgba(255, 255, 255, 0.12)"
+                    strokeWidth={1}
+                />
 
                 <Area
                     dataKey="y"
                     type="monotone"
-                    fill="#fff"
-                    fillOpacity={1}
-                    strokeWidth={0}
+                    baseValue={yAxisMin}
+                    fill="#7cb5ec"
+                    fillOpacity={0.28}
+                    stroke="#7cb5ec"
+                    strokeWidth={2}
                     isAnimationActive={false}
                 />
 
                 <ReferenceLine
-                    y={absoluteHighestValue + yAxisPadding}
+                    y={0}
                     stroke="gray"
                     strokeOpacity={0.5}
                     strokeWidth={2}

@@ -2,10 +2,8 @@ import React from "react";
 import { Move } from "chess.js";
 
 import { addChildMove } from "shared/types/game/position/StateTreeNode";
-import AnalysisTab from "@analysis/constants/AnalysisTab";
 import useSettingsStore from "@/stores/SettingsStore";
 import useAnalysisGameStore from "@analysis/stores/AnalysisGameStore";
-import useAnalysisTabStore from "@analysis/stores/AnalysisTabStore";
 import useAnalysisBoardStore from "@analysis/stores/AnalysisBoardStore";
 import Board from "@analysis/components/Board";
 import playBoardSound from "@/lib/boardSounds";
@@ -24,8 +22,6 @@ function BoardArea() {
         setGameAnalysisOpen
     } = useAnalysisGameStore();
 
-    const setActiveTab = useAnalysisTabStore(state => state.setActiveTab);
-
     const {
         currentStateTreeNode,
         setCurrentStateTreeNode,
@@ -40,7 +36,6 @@ function BoardArea() {
     function addMove(move: Move) {
         if (!gameAnalysisOpen) {
             setGameAnalysisOpen(true);
-            setActiveTab(AnalysisTab.ANALYSIS);
         }
 
         setCurrentStateTreeNode(prev => {

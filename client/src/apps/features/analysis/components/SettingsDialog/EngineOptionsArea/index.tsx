@@ -9,11 +9,22 @@ import useSettingsStore from "@/stores/SettingsStore";
 import LogMessage from "@/components/common/LogMessage";
 import DropdownSetting from "@/components/settings/DropdownSetting";
 import NumberSetting from "@/components/settings/NumberSetting";
-import SwitchSetting from "@/components/settings/SwitchSetting";
 
 import * as styles from "../SettingsDialog.module.css";
 
 const engineVersionOptions = [
+    {
+        label: "Stockfish 18 (108MB download)",
+        value: EngineVersion.STOCKFISH_18
+    },
+    {
+        label: "Stockfish 18 Lite (7MB download)",
+        value: EngineVersion.STOCKFISH_18_LITE
+    },
+    {
+        label: "Stockfish 18 (Compatibility)",
+        value: EngineVersion.STOCKFISH_18_ASM
+    },
     {
         label: "Stockfish 17 (68 MB)",
         value: EngineVersion.STOCKFISH_17
@@ -25,7 +36,28 @@ const engineVersionOptions = [
     {
         label: "Stockfish 17 (Compatibility)",
         value: EngineVersion.STOCKFISH_17_ASM
+    },
+    {
+        label: "Engine Off",
+        value: "off"
     }
+];
+
+const timeLimitOptions = [
+    { label: "3 sec", value: 3 },
+    { label: "5 sec", value: 5 },
+    { label: "10 sec", value: 10 },
+    { label: "20 sec", value: 20 },
+    { label: "30 sec", value: 30 },
+    { label: "Unlimited", value: 0 }
+];
+
+const lineCountOptions = [
+    { label: "1", value: 1 },
+    { label: "2", value: 2 },
+    { label: "3", value: 3 },
+    { label: "4", value: 4 },
+    { label: "5", value: 5 }
 ];
 
 function EngineOptionsArea() {
@@ -53,23 +85,9 @@ function EngineOptionsArea() {
             {t("settings.engine.title")}
         </span>
 
-        <span className={styles.setting}>
-            <span>{t("enabled", { ns: "common" })}</span>
-
-            <SwitchSetting
-                defaultChecked={settings.analysis.engine.enabled}
-                onChange={checked => (
-                    setSettings(draft => {
-                        draft.analysis.engine.enabled = checked;
-                        return draft;
-                    })
-                )}
-            />
-        </span>
-
         <div className={styles.setting}>
             <span data-tooltip-id="settings-engine-version">
-                {t("settings.engine.version")}
+                Chess Engine
             </span>
 
             <Tooltip
@@ -81,18 +99,92 @@ function EngineOptionsArea() {
 
             <DropdownSetting
                 options={engineVersionOptions}
-                defaultValue={engineVersionOptions.find(
-                    option => option.value == settings.analysis.engine.version
+                defaultValue={engineVersionOptions.find(option => (
+                    settings.analysis.engine.enabled
+                        ? option.value == settings.analysis.engine.version
+                        : option.value == "off"
+                ))}
+                onSelect={option => {
+                    if (!option) return;
+
+                    setSettings(draft => {
+                        if (option.value == "off") {
+                            draft.analysis.engine.enabled = false;
+                            return draft;
+                        }
+
+                        draft.analysis.engine.enabled = true;
+                        draft.analysis.engine.version = option.value as EngineVersion;
+                        return draft;
+                    });
+                }}
+                dropdownStyle={{ width: "220px" }}
+            />
+        </div>
+
+        <div className={styles.setting}>
+            <span data-tooltip-id="settings-engine-time-limit">
+                Maximum Time
+            </span>
+
+            <Tooltip
+                id="settings-engine-time-limit"
+                content={t("settings.engine.descriptions.timeLimit")}
+                delayShow={500}
+                className={styles.settingDescription}
+            />
+
+            <DropdownSetting
+                options={timeLimitOptions}
+                defaultValue={timeLimitOptions.find(option => (
+                    !settings.analysis.engine.timeLimitEnabled
+                        ? option.value == 0
+                        : option.value == settings.analysis.engine.timeLimit
+                ))}
+                onSelect={option => {
+                    if (!option) return;
+
+                    setSettings(draft => {
+                        if (option.value == 0) {
+                            draft.analysis.engine.timeLimitEnabled = false;
+                            return draft;
+                        }
+
+                        draft.analysis.engine.timeLimitEnabled = true;
+                        draft.analysis.engine.timeLimit = option.value;
+                        return draft;
+                    });
+                }}
+                dropdownStyle={{ width: "220px" }}
+            />
+        </div>
+
+        <div className={styles.setting}>
+            <span data-tooltip-id="settings-engine-lines">
+                Number of Lines
+            </span>
+
+            <Tooltip
+                id="settings-engine-lines"
+                content={t("settings.engine.descriptions.lines")}
+                delayShow={500}
+                className={styles.settingDescription}
+            />
+
+            <DropdownSetting
+                options={lineCountOptions}
+                defaultValue={lineCountOptions.find(
+                    option => option.value == settings.analysis.engine.lines
                 )}
                 onSelect={option => {
                     if (!option) return;
 
                     setSettings(draft => {
-                        draft.analysis.engine.version = option.value;
+                        draft.analysis.engine.lines = option.value;
                         return draft;
                     });
                 }}
-                dropdownStyle={{ width: "180px" }}
+                dropdownStyle={{ width: "220px" }}
             />
         </div>
 
@@ -124,78 +216,11 @@ function EngineOptionsArea() {
             />
         </div>
 
-        <div className={styles.setting}>
-            <span data-tooltip-id="settings-engine-lines">
-                {t("settings.engine.lines")}
-            </span>
-
-            <Tooltip
-                id="settings-engine-lines"
-                content={t("settings.engine.descriptions.lines")}
-                delayShow={500}
-                className={styles.settingDescription}
-            />
-
-            <NumberSetting
-                min={0}
-                max={5}
-                defaultValue={settings.analysis.engine.lines}
-                onChange={value => (
-                    setSettings(draft => {
-                        draft.analysis.engine.lines = floor(
-                            clamp(value, 1, 5)
-                        );
-                        return draft;
-                    })
-                )}
-                style={{ width: "180px" }}
-            />
-        </div>
-
         {settings.analysis.engine.lines < 2
             && <LogMessage theme="warn">
                 {t("settings.engine.linesWarning")}
             </LogMessage>
         }
-
-        <div className={styles.setting}>
-            <span data-tooltip-id="settings-engine-time-limit">
-                {t("settings.engine.timeLimit")}
-            </span>
-
-            <Tooltip
-                id="settings-engine-time-limit"
-                content={t("settings.engine.descriptions.timeLimit")}
-                delayShow={500}
-                className={styles.settingDescription}
-            />
-
-            <div className={styles.subsetting}>
-                <SwitchSetting
-                    defaultChecked={settings.analysis.engine.timeLimitEnabled}
-                    onChange={checked => (
-                        setSettings(draft => {
-                            draft.analysis.engine.timeLimitEnabled = checked;
-                            return draft;
-                        })
-                    )}
-                />
-
-                <NumberSetting
-                    min={0.01}
-                    defaultValue={settings.analysis.engine.timeLimit}
-                    onChange={value => (
-                        setSettings(draft => {
-                            draft.analysis.engine.timeLimit = floor(
-                                Math.max(0.01, value), 2
-                            );
-                            return draft;
-                        })
-                    )}
-                    style={{ width: "180px" }}
-                />
-            </div>
-        </div>
 
         <div className={styles.setting}>
             <span data-tooltip-id="settings-engine-suggestion-arrows">
@@ -227,7 +252,7 @@ function EngineOptionsArea() {
                         return draft;
                     });
                 }}
-                dropdownStyle={{ width: "180px" }}
+                dropdownStyle={{ width: "220px" }}
             />
         </div>
     </>;

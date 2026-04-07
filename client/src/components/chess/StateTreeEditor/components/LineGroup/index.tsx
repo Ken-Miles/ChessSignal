@@ -29,7 +29,10 @@ function LineGroup({
             }}
         />)}
 
-        <Text style={{ marginLeft: `${indentCount * INDENT_GAP}px` }}>
+        <Text
+            className={styles.moveNumber}
+            style={{ marginLeft: `${indentCount * INDENT_GAP}px` }}
+        >
             {firstNode
                 ? Math.trunc(
                     getNodeMoveNumber(firstNode, initialPosition)

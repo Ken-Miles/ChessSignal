@@ -3,8 +3,9 @@
     flex-direction: column;
     box-sizing: border-box;
 
-    border-radius: 10px;
-    background-color: var(--ui-shade-3);
+    border-radius: 8px;
+    background-color: #222326;
+    border: 1px solid #34363a;
 
     overflow-x: hidden;
 }
@@ -13,25 +14,123 @@
     display: flex;
     flex-grow: 1;
     flex-direction: column;
-    gap: 10px;
-    padding: 10px;
+    gap: 8px;
+    padding: 8px;
 
     overflow-y: auto;
     overscroll-behavior: contain;
 }
 
 .title {
-    text-align: center;
-    padding: 5px 10px;
-
-    border-radius: 10px;
-    background-color: var(--ui-blue);
+    margin: 0;
     color: white;
     font-family: "Nunito";
-    font-weight: 600;
-    font-size: 2.5rem;
+    font-weight: 700;
+    font-size: 1.08rem;
 
     overflow-wrap: break-word;
+}
+
+.sidebarHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 10px;
+    border-radius: 6px;
+    background-color: #2b3139;
+    border: 1px solid #3a414d;
+}
+
+.sidebarHeaderCenter {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.sidebarHeaderIcon {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 999px;
+    color: #f8f9fb;
+    background-color: #81b64c;
+    font-size: 0.9rem;
+}
+
+.sidebarHeaderActions {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.sidebarHeaderButton,
+.sidebarHeaderButtonSecondary {
+    width: 28px;
+    height: 28px;
+    border-radius: 999px;
+    border: 1px solid #505968;
+    background-color: #222831;
+    color: #d9e0e8;
+    cursor: default;
+    font-size: 0.86rem;
+}
+
+.sidebarHeaderButtonSecondary {
+    border-color: #4f657f;
+    color: #9ec6ff;
+}
+
+.reviewLayout {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.tabBar {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    padding: 6px;
+    border: 1px solid #3b424d;
+    border-radius: 6px;
+    background-color: #232830;
+}
+
+.tabButton {
+    border: 1px solid #47515f;
+    border-radius: 5px;
+    min-height: 32px;
+    background-color: #1f242b;
+    color: #bcc6d3;
+    font-size: 0.82rem;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.tabButtonActive {
+    background-color: #314256;
+    border-color: #5f7aa0;
+    color: #f3f7fd;
+}
+
+.reportSection {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.moveListSection {
+    min-height: 245px;
+    flex: 1;
+}
+
+.movesView {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-height: 420px;
 }
 
 @media (max-width: 900px) {
@@ -58,7 +157,7 @@
 
 .traverser {
     width: min(100%, 420px);
-    background-color: #1b1c1e;
+    background-color: #15171a;
 }
 
 @media (max-width: 900px) {

@@ -1,0 +1,95 @@
+.wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+.row {
+    display: grid;
+    grid-template-columns: 32px 1fr 1fr;
+    align-items: center;
+    gap: 6px;
+    min-height: 34px;
+    padding: 2px 4px;
+    border-radius: 3px;
+}
+
+.lightRow {
+    background-color: #262b31;
+}
+
+.darkRow {
+    background-color: #21262c;
+}
+
+.moveNumber {
+    color: #9ea6b2;
+    font-size: 0.8rem;
+    font-weight: 700;
+    user-select: none;
+    text-align: right;
+    padding-right: 2px;
+}
+
+.moveNode {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    border: none;
+    border-radius: 4px;
+    padding: 4px 6px;
+    background: transparent;
+    color: #e5eaf1;
+    font-size: 0.9rem;
+    font-weight: 700;
+    text-align: left;
+    cursor: pointer;
+}
+
+.whiteMove {
+    justify-self: stretch;
+}
+
+.blackMove {
+    justify-self: stretch;
+}
+
+.moveNode:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.moveText {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    overflow-wrap: anywhere;
+}
+
+.figurine {
+    width: 1rem;
+    height: 1rem;
+    opacity: 0.98;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    line-height: 1;
+}
+
+.annotationIcon {
+    flex: 0 0 auto;
+}
+
+.selected {
+    color: #eef2f8 !important;
+    background-color: #4f555e !important;
+}
+
+.inaccuracy {
+}
+
+.mistake {
+}
+
+.blunder {
+}

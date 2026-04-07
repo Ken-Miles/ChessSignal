@@ -10,7 +10,7 @@ import getCloudEvaluation from "./cloudEvaluate";
 interface EvaluateMovesOptions {
     engineVersion: EngineVersion;
     maxEngineCount?: number;
-    engineDepth: number;
+    engineDepth?: number;
     engineTimeLimit?: number;
     cloudEngineLines: number;
     engineConfig?: (engine: Engine) => void;
@@ -54,7 +54,10 @@ function createGameEvaluator(
             const topCloudLine = getTopEngineLine(cloudEngineLines);
             if (!topCloudLine) break;
 
-            if (topCloudLine.depth < options.engineDepth) break;
+            if (
+                options.engineDepth != undefined
+                && topCloudLine.depth < options.engineDepth
+            ) break;
             if (cloudEngineLines.length < options.cloudEngineLines) break;
 
             stateTreeNode.state.engineLines = [
@@ -111,9 +114,13 @@ function createGameEvaluator(
                         ? options.engineTimeLimit * 1000
                         : undefined,
                     onEngineLine: line => {
-                        // Depth 0 is given for states with no legal moves
-                        const localProgress = line.depth == 0
-                            ? 1 : line.depth / options.engineDepth;
+                        // Depth 0 is given for states with no legal moves.
+                        // For time-based analysis without a target depth,
+                        // progress is marked complete only when evaluation ends.
+                        const localProgress = (
+                            line.depth == 0
+                            || options.engineDepth == undefined
+                        ) ? 1 : line.depth / options.engineDepth;
                         
                         // Progress value will already exist for cutoff node
                         progresses[currentStateTreeNodeIndex] = Math.max(

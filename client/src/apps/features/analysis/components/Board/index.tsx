@@ -5,6 +5,7 @@ import { Chess, Move, PieceSymbol } from "chess.js";
 
 import { defaultRootNode } from "shared/constants/utils";
 import { isMovePromotion } from "shared/lib/utils/chess";
+import PieceColour from "shared/constants/PieceColour";
 import useResizeObserver from "@/hooks/useResizeObserver";
 import PlayerProfile from "@/components/chess/PlayerProfile";
 import EvaluationBar from "../EvaluationBar";
@@ -51,6 +52,8 @@ function Board({
 
     const topProfile = flipped ? whiteProfile : blackProfile;
     const bottomProfile = flipped ? blackProfile : whiteProfile;
+    const topProfileColour = flipped ? PieceColour.WHITE : PieceColour.BLACK;
+    const bottomProfileColour = flipped ? PieceColour.BLACK : PieceColour.WHITE;
 
     function onSquareClick(square: Square, piece?: Piece) {
         squares.setHighlighted([]);
@@ -119,7 +122,11 @@ function Board({
             className={`${styles.profile} ${profileClassName}`}
             style={{ borderRadius: "7px 7px 0 0", ...profileStyle }}
         >
-            <PlayerProfile profile={topProfile} />
+            <PlayerProfile
+                profile={topProfile}
+                playerColour={topProfileColour}
+                currentFen={node.state.fen}
+            />
         </div>}
 
         <div className={styles.boardContainer} ref={boardContainerRef}>
@@ -161,7 +168,7 @@ function Board({
                     showPromotionDialog={!!heldPromotion}
                     promotionToSquare={heldPromotion?.to}
                     promotionDialogVariant="vertical"
-                    boardWidth={boardWidth - (evaluation ? 40 : 0)}
+                    boardWidth={boardWidth - (evaluation ? 22 : 0)}
                 />
             </SquaresContext.Provider>
         </div>
@@ -170,7 +177,11 @@ function Board({
             className={`${styles.profile} ${profileClassName}`}
             style={{ borderRadius: "0 0 7px 7px", ...profileStyle }}
         >
-            <PlayerProfile profile={bottomProfile} />
+            <PlayerProfile
+                profile={bottomProfile}
+                playerColour={bottomProfileColour}
+                currentFen={node.state.fen}
+            />
         </div>}
     </div>;
 }

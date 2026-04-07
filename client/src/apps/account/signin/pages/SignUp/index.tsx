@@ -31,6 +31,8 @@ function SignUp() {
     const [ password, setPassword ] = useState("");
     const [ confirmedPassword, setConfirmedPassword ] = useState("");
 
+    const googleLoginEnabled = Boolean(process.env.GOOGLE_OAUTH_CLIENT_ID);
+
     const [ status, setStatus ] = useState<StatusMessage>();
 
     const [ registrationPending, setRegistrationPending ] = useState(false);
@@ -95,19 +97,23 @@ function SignUp() {
                 {t("signIn.registerTitle", { ns: "otherPages" })}
             </span>
 
-            <Button
-                icon={iconGoogle}
-                iconSize="28px"
-                className={styles.submitButton}
-                style={{ gap: "10px" }}
-                onClick={googleLogin}
-            >
-                {t("signIn.registerButtonGoogle", { ns: "otherPages" })}
-            </Button>
+            {googleLoginEnabled && <>
+                <Button
+                    icon={iconGoogle}
+                    iconSize="28px"
+                    className={styles.submitButton}
+                    style={{ gap: "10px" }}
+                    onClick={googleLogin}
+                >
+                    {t("signIn.registerButtonGoogle", { ns: "otherPages" })}
+                </Button>
 
-            <Separator style={{ margin: 0 }}>
-                <b>{t("signIn.alternative", { ns: "otherPages" })}</b>
-            </Separator>
+                <Separator style={{ margin: 0 }}>
+                    <b>{t("signIn.alternative", { ns: "otherPages" })}</b>
+                </Separator>
+            </>}
+
+            {!googleLoginEnabled && <Separator style={{ margin: 0 }} />}
 
             <TextField
                 wrapperStyle={{ width: "100%" }}

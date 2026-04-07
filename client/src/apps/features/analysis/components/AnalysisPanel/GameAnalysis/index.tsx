@@ -2,9 +2,9 @@ import React from "react";
 
 import useAnalysisBoardStore from "@analysis/stores/AnalysisBoardStore";
 import useAnalysisGameStore from "@analysis/stores/AnalysisGameStore";
-import StateTreeEditor from "@/components/chess/StateTreeEditor";
 import playBoardSound from "@/lib/boardSounds";
 
+import MainlineMoveList from "./MainlineMoveList";
 import * as styles from "./GameAnalysis.module.css";
 
 function GameAnalysis() {
@@ -16,9 +16,10 @@ function GameAnalysis() {
         setAutoplayEnabled
     } = useAnalysisBoardStore();
     
-    return <StateTreeEditor
+    return <MainlineMoveList
         className={styles.stateTreeEditor}
         stateTreeRootNode={analysisGame.stateTree}
+        selectedNodeId={currentStateTreeNode.id}
         onMoveClick={node => {
             setCurrentStateTreeNode(node);
         

@@ -29,9 +29,6 @@ export function isMoveCriticalCandidate(
         ) return false;
     }
 
-    // Moves in losing positions cannot be critical
-    if (current.subjectiveEvaluation.value < 0) return false;
-
     // Disallow queen promotions as critical moves
     if (current.playedMove.promotion == QUEEN) return false;
     

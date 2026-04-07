@@ -9,13 +9,13 @@ import useAnalysisTabStore from "@analysis/stores/AnalysisTabStore";
 import ClassifiedMoveCard from "@analysis/components/report/ClassifiedMoveCard";
 import StateTreeTraverser from "@/components/chess/StateTreeTraverser";
 
-import TabBar from "./TabBar";
 import AnalysisProgress from "./AnalysisProgress";
 import RealtimeEngineArea from "./RealtimeEngineArea";
 
 import GameSelection from "./GameSelection";
 import GameReport from "./GameReport";
 import GameAnalysis from "./GameAnalysis";
+import EvaluationGraphArea from "./GameReport/EvaluationGraphArea";
 
 import AnalysisPanelProps from "./AnalysisPanelProps";
 import * as styles from "./AnalysisPanel.module.css";
@@ -38,24 +38,66 @@ function AnalysisPanel({
         state => state.currentStateTreeNode
     );
 
-    const { activeTab } = useAnalysisTabStore();
+    const { activeTab, setActiveTab } = useAnalysisTabStore();
     
     return <div
         className={`${styles.wrapper} ${className}`}
         style={style}
     >
         <div className={styles.components}>
-            <div className={styles.title}>
-                {t("title")}
+            <div className={styles.sidebarHeader}>
+                <div className={styles.sidebarHeaderCenter}>
+                    <span className={styles.sidebarHeaderIcon}>★</span>
+
+                    <h1 className={styles.title}>
+                        {t("title")}
+                    </h1>
+                </div>
+
+                <div className={styles.sidebarHeaderActions}>
+                    <button
+                        type="button"
+                        className={styles.sidebarHeaderButtonSecondary}
+                        aria-label="Toggle Coach Audio"
+                    >
+                        🔊
+                    </button>
+
+                    <button
+                        type="button"
+                        className={styles.sidebarHeaderButton}
+                        aria-label="Go to Analysis"
+                    >
+                        🔎
+                    </button>
+                </div>
             </div>
 
             <OptionsToolbar/>
 
-            {gameAnalysisOpen && <TabBar/>}
+            {gameAnalysisOpen && <div className={styles.tabBar}>
+                <button
+                    type="button"
+                    className={`${styles.tabButton} ${activeTab == AnalysisTab.REPORT ? styles.tabButtonActive : ""}`}
+                    onClick={() => setActiveTab(AnalysisTab.REPORT)}
+                >
+                    Overview
+                </button>
+
+                <button
+                    type="button"
+                    className={`${styles.tabButton} ${activeTab == AnalysisTab.ANALYSIS ? styles.tabButtonActive : ""}`}
+                    onClick={() => setActiveTab(AnalysisTab.ANALYSIS)}
+                >
+                    Moves
+                </button>
+            </div>}
 
             <AnalysisProgress/>
 
-            {(gameAnalysisOpen && settings.engine.enabled)
+            {(gameAnalysisOpen
+                && activeTab == AnalysisTab.ANALYSIS
+                && settings.engine.enabled)
                 && <RealtimeEngineArea/>
             }
 
@@ -71,14 +113,36 @@ function AnalysisPanel({
 
             {gameAnalysisOpen
                 ? (activeTab == AnalysisTab.REPORT
-                    ? <GameReport/>
-                    : <GameAnalysis/>
+                    ? <div className={styles.reviewLayout}>
+                        <div className={styles.reportSection}>
+                            <GameReport
+                                onStartReview={() => {
+                                    setActiveTab(AnalysisTab.ANALYSIS);
+                                }}
+                            />
+                        </div>
+                    </div>
+                    : <div className={styles.movesView}>
+                        <div className={styles.moveListSection}>
+                            <GameAnalysis/>
+                        </div>
+
+                        <EvaluationGraphArea/>
+                    </div>
                 )
                 : <GameSelection/>
             }
         </div>
 
-        <div className={styles.traverserContainer}>
+        <div
+            className={styles.traverserContainer}
+            style={{
+                display: (
+                    gameAnalysisOpen
+                    && activeTab == AnalysisTab.ANALYSIS
+                ) ? undefined : "none"
+            }}
+        >
             <StateTreeTraverser className={styles.traverser} />
         </div>
     </div>;

@@ -80,6 +80,20 @@ function ClassifiedMoveCard() {
         searchNode => !!searchNode.state.opening,
         true
     )?.state.opening;
+    const nodeClassification = node.state.classification as Classification | undefined;
+
+    const nodeEvaluation = getTopEngineLine(node.state.engineLines)?.evaluation;
+
+    const advantageGoesToWhite = nodeEvaluation
+        ? nodeEvaluation.value >= 0
+        : undefined;
+
+    const advantageText = nodeEvaluation
+        ? (nodeEvaluation.type == "mate"
+            ? `${nodeEvaluation.value > 0 ? "+" : "-"}M${Math.abs(nodeEvaluation.value)}`
+            : `${nodeEvaluation.value > 0 ? "+" : ""}${(nodeEvaluation.value / 100).toFixed(2)}`
+        )
+        : undefined;
 
     const playedMove = getPlayedMove(node);
     const playedMoveMessage = (
@@ -87,7 +101,6 @@ function ClassifiedMoveCard() {
             ? getSimpleNotation(playedMove)
             : node.state.move?.san
         )
-        + " "
         + t(
             "classifiedMoveCard.classifications."
             + node.state.classification,
@@ -116,8 +129,8 @@ function ClassifiedMoveCard() {
             }
         >
             <div className={styles.classification}>
-                <img src={node.state.classification
-                    ? classificationImages[node.state.classification]
+                <img src={nodeClassification
+                    ? classificationImages[nodeClassification]
                     : (realtimeClassifyError
                         ? errorClassificationIcon
                         : loadingClassificationIcon
@@ -127,21 +140,37 @@ function ClassifiedMoveCard() {
                 <span
                     className={styles.classificationName}
                     style={{
-                        color: node.state.classification
-                            ? classificationColours[node.state.classification]
+                        color: nodeClassification
+                            ? classificationColours[nodeClassification]
                             : (realtimeClassifyError
                                 ? classificationColours[Classification.BLUNDER]
                                 : "white"
                             )
                     }}
                 >
-                    {node.state.classification
+                    {nodeClassification
                         ? playedMoveMessage
                         : (realtimeClassifyError
                             ? t("error") : t("loading")
                         )
                     }
                 </span>
+
+                {advantageGoesToWhite != undefined && advantageText && <span
+                    className={styles.classificationAdvantage}
+                    style={advantageGoesToWhite
+                        ? {
+                            backgroundColor: "#f1f4f8",
+                            color: "#1a1d22"
+                        }
+                        : {
+                            backgroundColor: "#1b1e24",
+                            color: "#f0f3f8"
+                        }
+                    }
+                >
+                    {advantageText}
+                </span>}
             </div>
 
             {realtimeClassifyError
@@ -151,9 +180,9 @@ function ClassifiedMoveCard() {
             }
 
             {topAlternativeMove
-                && node.state.classification
+                && nodeClassification
                 && topAlternativeMove.san != node.state.move?.san
-                && !inalterableClassifications.includes(node.state.classification)
+                && !inalterableClassifications.includes(nodeClassification)
                 && <span className={styles.bestAlternativeComment}>
                     <span>
                         {t("classifiedMoveCard.alternative", { ns: "analysis" })}

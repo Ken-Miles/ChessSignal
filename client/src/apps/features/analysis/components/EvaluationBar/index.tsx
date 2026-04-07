@@ -14,12 +14,37 @@ function EvaluationBar({
     moveColour,
     flipped = false
 }: EvaluationBarProps) {
+    const exactEvaluationText = useMemo(() => {
+        if (evaluation.type == "mate") {
+            return `${evaluation.value > 0 ? "+" : "-"}M${Math.abs(evaluation.value)}`;
+        }
+
+        return `${evaluation.value > 0 ? "+" : ""}${(evaluation.value / 100).toFixed(2)}`;
+    }, [evaluation]);
+
+    const oppositeExactEvaluationText = useMemo(() => {
+        if (evaluation.type == "mate") {
+            return `${evaluation.value > 0 ? "-" : "+"}M${Math.abs(evaluation.value)}`;
+        }
+
+        const oppositeValue = (evaluation.value * -1) / 100;
+        return `${oppositeValue > 0 ? "+" : ""}${oppositeValue.toFixed(2)}`;
+    }, [evaluation]);
+
     const evaluationText = useMemo(() => (
         stringifyEvaluation({
             ...evaluation,
             value: Math.abs(evaluation.value)
-        }, false, 1)
+        }, false, 2)
     ), [evaluation]);
+
+    const abbreviatedEvaluationText = useMemo(() => {
+        if (evaluation.type == "mate") {
+            return `M${Math.abs(evaluation.value)}`;
+        }
+
+        return (Math.abs(evaluation.value) / 100).toFixed(1);
+    }, [evaluation]);
 
     const overBarHeight = useMemo(() => {
         if (evaluation.type == "centipawn") {
@@ -38,15 +63,16 @@ function EvaluationBar({
 
     return <div
         className={`${styles.evaluationBar} ${className}`}
+        title={exactEvaluationText}
         style={{
-            backgroundColor: flipped ? "#0c0c0c" : "#fff",
+            backgroundColor: flipped ? "#0f1012" : "#f4f4f4",
             ...style
         }}
     >
         <div
             className={styles.overBar}
             style={{
-                backgroundColor: flipped ? "#fff" : "#0c0c0c",
+                backgroundColor: flipped ? "#f4f4f4" : "#0f1012",
                 height: flipped
                     ? `calc(100% - ${overBarHeight}%)`
                     : `${overBarHeight}%`
@@ -54,13 +80,34 @@ function EvaluationBar({
         />
 
         <span
-            className={styles.evaluationText}
+            className={`${styles.evaluationText} ${styles.evaluationTextShort}`}
             style={{
-                [textBottom ? "bottom" : "top"]: "7px",
-                color: overBarHeight > 50 ? "#fff" : "#000"
+                [textBottom ? "bottom" : "top"]: "6px",
+                color: overBarHeight > 50 ? "#f3f3f3" : "#0f1012",
+                backgroundColor: overBarHeight > 50
+                    ? "rgba(15, 16, 18, 0.85)"
+                    : "rgba(255, 255, 255, 0.88)"
+            }}
+        >
+            {abbreviatedEvaluationText}
+        </span>
+
+        <span
+            className={`${styles.evaluationText} ${styles.evaluationTextFull}`}
+            style={{
+                [textBottom ? "bottom" : "top"]: "6px",
+                color: overBarHeight > 50 ? "#f3f3f3" : "#0f1012",
+                backgroundColor: overBarHeight > 50
+                    ? "rgba(15, 16, 18, 0.85)"
+                    : "rgba(255, 255, 255, 0.88)"
             }}
         >
             {evaluationText}
+        </span>
+
+        <span className={styles.exactEvaluationTooltip}>
+            <span className={styles.tooltipRow}>White {exactEvaluationText}</span>
+            <span className={styles.tooltipRow}>Black {oppositeExactEvaluationText}</span>
         </span>
     </div>;
 }

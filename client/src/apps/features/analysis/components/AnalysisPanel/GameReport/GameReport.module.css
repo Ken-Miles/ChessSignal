@@ -1,0 +1,117 @@
+.overviewContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.coachSection {
+    display: grid;
+    grid-template-columns: 56px 1fr;
+    gap: 8px;
+    align-items: center;
+    border: 1px solid #373d47;
+    border-radius: 8px;
+    background-color: #262b33;
+    padding: 8px;
+}
+
+.coachAvatar {
+    width: 56px;
+    height: 56px;
+    border-radius: 999px;
+    object-fit: cover;
+    border: 2px solid #3f4b5b;
+}
+
+.coachBubble {
+    position: relative;
+    background-color: #2f3944;
+    border: 1px solid #425164;
+    color: #e8edf3;
+    font-size: 0.86rem;
+    line-height: 1.25;
+    border-radius: 8px;
+    padding: 7px 9px;
+}
+
+.coachBubble::before {
+    content: "";
+    position: absolute;
+    left: -7px;
+    top: 18px;
+    width: 0;
+    height: 0;
+    border-top: 6px solid transparent;
+    border-bottom: 6px solid transparent;
+    border-right: 7px solid #425164;
+}
+
+.graphSection {
+    border: 1px solid #373d47;
+    border-radius: 8px;
+    overflow: hidden;
+    background-color: #242a31;
+}
+
+.engineHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 30px;
+    padding: 6px 8px;
+    border-bottom: 1px solid #3a4250;
+    background-color: #2a313b;
+}
+
+.engineHeaderText {
+    color: #cfd7e3;
+    font-size: 0.76rem;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+}
+
+.engineHeaderDepth {
+    display: inline-flex;
+    justify-content: center;
+    width: 50%;
+}
+
+.engineHeaderRight {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 50%;
+}
+
+.engineHeaderEngine {
+    text-align: center;
+}
+
+.engineHeaderButton {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border: 1px solid #4f5c6e;
+    border-radius: 999px;
+    background-color: #1f2630;
+    padding: 0;
+    cursor: pointer;
+}
+
+.engineHeaderButton:hover {
+    background-color: #273241;
+}
+
+.startReviewButton {
+    width: 100%;
+    min-height: 38px;
+    border-radius: 7px;
+    border: 1px solid #5d7c3a;
+    background-color: #6c9f3c;
+    color: #f8fbf2;
+    font-size: 0.9rem;
+    font-weight: 800;
+}

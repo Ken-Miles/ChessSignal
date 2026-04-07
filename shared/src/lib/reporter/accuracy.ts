@@ -35,5 +35,5 @@ export function getMoveAccuracy(
         moveColour
     );
 
-    return 103.16 * Math.exp(-4 * pointLoss) - 3.17;
+    return 103.16 * Math.exp(-4.6 * pointLoss) - 3.17;
 }

@@ -95,13 +95,15 @@ export function pointLossClassify(
 
     if (pointLoss < 0.01) {
         return Classification.BEST;
-    } else if (pointLoss < 0.045) {
+    } else if (pointLoss < 0.03) {
         return Classification.EXCELLENT;
-    } else if (pointLoss < 0.08) {
+    } else if (pointLoss < 0.065) {
         return Classification.OKAY;
-    } else if (pointLoss < 0.12) {
+    } else if (pointLoss < 0.11) {
         return Classification.INACCURACY;
-    } else if (pointLoss < 0.22) {
+    } else if (pointLoss < 0.17) {
+        return Classification.RISKY;
+    } else if (pointLoss < 0.26) {
         return Classification.MISTAKE;
     } else {
         return Classification.BLUNDER;

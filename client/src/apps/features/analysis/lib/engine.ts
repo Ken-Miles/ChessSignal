@@ -119,23 +119,31 @@ class Engine {
     }
 
     async evaluate(options: {
-        depth: number;
+        depth?: number;
         timeLimit?: number;
         onEngineLine?: (line: EngineLine) => void;
     }): Promise<EngineLine[]> {
         const engineLines: EngineLine[] = [];
 
-        const maxTimeArgument = options.timeLimit
-            ? `movetime ${options.timeLimit}` : "";
+        const goArguments: string[] = [];
+
+        if (options.depth != undefined) {
+            goArguments.push(`depth ${options.depth}`);
+        }
+
+        if (options.timeLimit != undefined) {
+            goArguments.push(`movetime ${options.timeLimit}`);
+        }
+
+        if (!goArguments.length) {
+            goArguments.push("movetime 1000");
+        }
 
         this.evaluating = true;
 
         await this.consumeLogs(
-            `go depth ${options.depth} ${maxTimeArgument}`,
-            log => (
-                log.startsWith("bestmove")
-                || log.includes("depth 0")
-            ),
+            `go ${goArguments.join(" ")}`,
+            log => log.startsWith("bestmove"),
             log => {
                 if (!log.startsWith("info depth")) return;
                 if (log.includes("currmove")) return;

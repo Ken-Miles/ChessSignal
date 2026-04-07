@@ -1,0 +1,107 @@
+.wrapper {
+    border: 1px solid #373d47;
+    border-radius: 8px;
+    background-color: #252b33;
+    padding: 8px;
+}
+
+.headerRow,
+.infoRow {
+    display: grid;
+    grid-template-columns: 1fr 68px 68px;
+    align-items: center;
+    gap: 8px;
+    min-height: 30px;
+}
+
+.headerSpacer {
+    display: block;
+}
+
+.rowTitle {
+    color: #dbe1e8;
+    font-size: 0.8rem;
+    font-weight: 700;
+}
+
+.playerName {
+    font-size: 0.77rem;
+    color: #e7edf5;
+    font-weight: 700;
+}
+
+.cell {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 6px;
+    object-fit: cover;
+    border: 1px solid #4a5260;
+    background-color: #1a1e24;
+}
+
+.ratingPill {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    min-width: 48px;
+    height: 24px;
+    border-radius: 6px;
+    font-size: 0.78rem;
+    font-weight: 800;
+}
+
+.whitePill {
+    background-color: #f2f5f8;
+    color: #111418;
+}
+
+.blackPill {
+    background-color: #12161c;
+    color: #f0f3f7;
+    border: 1px solid #353f4d;
+}
+
+.separator {
+    border: none;
+    border-top: 1px solid #3b4350;
+    margin: 8px 0;
+}
+
+.tallies {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.talliesRow {
+    display: grid;
+    grid-template-columns: 1fr 42px 28px 42px;
+    align-items: center;
+    min-height: 26px;
+}
+
+.tallyValue {
+    font-size: 0.8rem;
+    font-weight: 800;
+    text-align: center;
+}
+
+.tallyWhite {
+    justify-self: center;
+}
+
+.tallyBlack {
+    justify-self: center;
+}
+
+.tallyGlyph {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+}

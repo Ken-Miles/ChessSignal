@@ -2,6 +2,7 @@ import React, { useContext } from "react";
 import { useTranslation } from "react-i18next";
 
 import { findNodeRecursively, getNodeChain } from "shared/types/game/position/StateTreeNode";
+import { Classification } from "shared/constants/Classification";
 import { classificationImages } from "@analysis/constants/classifications";
 import ContextMenu from "@/components/common/ContextMenu";
 import useSettingsStore from "@/stores/SettingsStore";
@@ -84,20 +85,32 @@ function Move({ node, children }: MoveProps) {
         setCurrentStateTreeNode(node);
     }
 
+    const classificationClass = node?.state.classification
+        ? {
+            [Classification.INACCURACY]: styles.inaccuracy,
+            [Classification.MISTAKE]: styles.mistake,
+            [Classification.BLUNDER]: styles.blunder,
+            [Classification.BRILLIANT]: styles.brilliant,
+            [Classification.CRITICAL]: styles.critical
+        }[node.state.classification]
+        : undefined;
+
     return <>
         {node?.state.classification
             && !classificationsHidden
             && <img
+                className={styles.classificationIcon}
                 src={classificationImages[node.state.classification]}
-                width={20}
-                height={20}
+                width={16}
+                height={16}
             />
         }
 
         <span
             className={
-                styles.wrapper
-                + ` ${currentStateTreeNode == node && styles.current}`
+                `${styles.wrapper}`
+                + ` ${classificationClass || ""}`
+                + ` ${currentStateTreeNode == node ? styles.current : ""}`
             }
             onClick={() => {
                 if (node) onMoveClick?.(node);

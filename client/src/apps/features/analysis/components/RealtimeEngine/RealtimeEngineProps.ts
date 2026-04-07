@@ -10,7 +10,7 @@ interface RealtimeEngineProps {
     playedUciMoves?: string[];
     config: {
         version: EngineVersion;
-        depth: number;
+        depth?: number;
         lines?: number;
         threads?: number;
         timeLimit?: number;

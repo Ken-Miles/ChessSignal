@@ -89,47 +89,56 @@ function StateTreeTraverser({ className, style }: StateTreeTraverserProps) {
     useHotkeys("right", traverseForwards, hotkeyConfig);
 
     return <div className={`${styles.wrapper} ${className}`} style={style}>
-        <img
-            src={iconInterfaceStart}
-            width={50}
+        <button
+            className={styles.controlButton}
             onClick={traverseToBeginning}
             title={t("stateTreeTraverser.beginning")}
-        />
+            type="button"
+        >
+            <img src={iconInterfaceStart} width={26} height={26} />
+        </button>
 
-        <img
-            src={iconInterfaceBack}
-            width={50}
+        <button
+            className={styles.controlButton}
             onClick={traverseBackwards}
             title={t("stateTreeTraverser.back")}
-        />
+            type="button"
+        >
+            <img src={iconInterfaceBack} width={26} height={26} />
+        </button>
 
-        <div
-            className={styles.autoplayContainer}
+        <button
+            className={`${styles.controlButton} ${autoplayEnabled ? styles.active : ""}`}
             onClick={() => setAutoplayEnabled(!autoplayEnabled)}
             title={autoplayEnabled
                 ? t("stateTreeTraverser.pause")
                 : t("stateTreeTraverser.play")
             }
+            type="button"
         >
-            <img width={50} src={autoplayEnabled
+            <img width={26} height={26} src={autoplayEnabled
                 ? iconInterfacePause
                 : iconInterfacePlay
             }/>
-        </div>
+        </button>
 
-        <img
-            src={iconInterfaceNext}
-            width={50}
+        <button
+            className={styles.controlButton}
             onClick={traverseForwards}
             title={t("stateTreeTraverser.next")}
-        />
+            type="button"
+        >
+            <img src={iconInterfaceNext} width={26} height={26} />
+        </button>
 
-        <img
-            src={iconInterfaceEnd}
-            width={50}
+        <button
+            className={styles.controlButton}
             onClick={traverseToEnd}
             title={t("stateTreeTraverser.end")}
-        />
+            type="button"
+        >
+            <img src={iconInterfaceEnd} width={26} height={26} />
+        </button>
     </div>;
 }
 

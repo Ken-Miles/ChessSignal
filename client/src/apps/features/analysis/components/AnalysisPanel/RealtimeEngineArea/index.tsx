@@ -4,10 +4,8 @@ import { uniqWith } from "lodash-es";
 
 import { getNodeParentChain } from "shared/types/game/position/StateTreeNode";
 import { isEngineLineEqual } from "shared/types/game/position/EngineLine";
-import AnalysisTab from "@analysis/constants/AnalysisTab";
 import useRealtimeAnalyser from "@analysis/hooks/useRealtimeAnalyser";
 import useSettingsStore from "@/stores/SettingsStore";
-import useAnalysisTabStore from "@analysis/stores/AnalysisTabStore";
 import useAnalysisGameStore from "@analysis/stores/AnalysisGameStore";
 import useAnalysisBoardStore from "@analysis/stores/AnalysisBoardStore";
 import useRealtimeEngineStore from "@analysis/stores/RealtimeEngineStore";
@@ -15,8 +13,6 @@ import RealtimeEngine from "@analysis/components/RealtimeEngine";
 
 function RealtimeEngineArea() {
     const { settings } = useSettingsStore();
-
-    const { activeTab } = useAnalysisTabStore();
 
     const initialPosition = useAnalysisGameStore(
         state => state.analysisGame.initialPosition
@@ -50,9 +46,14 @@ function RealtimeEngineArea() {
         playedUciMoves={playedUciMoves}
         config={{
             ...settings.analysis.engine,
+            depth: settings.analysis.engine.depth,
             timeLimit: settings.analysis.engine.timeLimitEnabled
                 ? settings.analysis.engine.timeLimit
-                : undefined
+                : (
+                    settings.analysis.engine.depth == undefined
+                        ? 1
+                        : undefined
+                )
         }}
         cachedEngineLines={currentEngineLines}
         onEngineLines={setDisplayedEngineLines}
@@ -63,12 +64,6 @@ function RealtimeEngineArea() {
             );
 
             considerRealtimeAnalyse();
-        }}
-        style={{
-            display: (
-                activeTab == AnalysisTab.REPORT
-                || !settings.analysis.engine.enabled
-            ) ? "none" : undefined
         }}
     />;
 }

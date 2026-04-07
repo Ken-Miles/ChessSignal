@@ -1,28 +1,28 @@
 .wrapper {
     display: flex;
     justify-content: center;
-    gap: 10px;
+    gap: 6px;
     position: relative;
 
-    border-radius: 10px;
-    background-color: var(--ui-shade-4);
+    border-radius: 6px;
+    background-color: #2a2c30;
 }
 
 .backButton {
-    padding: 3px;
+    padding: 2px;
     box-sizing: border-box;
-    width: 52px;
-    height: 52px;
+    width: 44px;
+    height: 44px;
     position: absolute;
     left: 0;
 
-    background-color: var(--ui-shade-5);
+    background-color: #34373d;
 }
 
 .optionButton {
-    padding: 6px;
-    width: 52px;
-    height: 52px;
+    padding: 4px;
+    width: 44px;
+    height: 44px;
 
-    background-color: var(--ui-shade-4);
+    background-color: #2a2c30;
 }

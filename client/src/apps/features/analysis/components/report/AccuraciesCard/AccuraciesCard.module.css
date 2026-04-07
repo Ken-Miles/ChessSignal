@@ -1,18 +1,19 @@
 .wrapper {
     display: flex;
     flex-direction: column;
-    gap: 5px;
-    padding-bottom: 10px;
+    gap: 4px;
+    padding-bottom: 8px;
 
-    border-radius: 10px;
-    background-color: var(--ui-shade-4);
+    border-radius: 6px;
+    border: 1px solid #373a3f;
+    background-color: #2a2d31;
 }
 
 .accuraciesTitle {
-    padding: 5px 5px 0 5px;
+    padding: 6px 6px 0 6px;
     text-align: center;
 
-    font-size: 1.4rem;
+    font-size: 1.15rem;
     color: white;
 }
 
@@ -22,20 +23,21 @@
 }
 
 .accuracy {
-    padding: 5px;
+    padding: 6px;
     width: 50%;
     box-sizing: border-box;
     text-align: center;
 
-    font-size: 1.5rem;
+    font-size: 1.15rem;
+    font-weight: 700;
 }
 
 .whiteAccuracy {
-    background-color: whitesmoke;
-    color: #0a0a0a;
+    background-color: #f1f1f1;
+    color: #161616;
 }
 
 .blackAccuracy {
-    background-color: #0a0a0a;
-    color: whitesmoke;
+    background-color: #111315;
+    color: #f1f1f1;
 }

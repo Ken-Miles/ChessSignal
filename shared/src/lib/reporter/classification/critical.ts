@@ -42,6 +42,6 @@ export function considerCriticalClassification(
         adaptPieceColour(current.playedMove.color)
     );
 
-    // 10% loss = middle between inaccuracy and mistake
-    return secondTopMovePointLoss >= 0.1;
+    // Lowering this slightly increases Great finds in practical positions.
+    return secondTopMovePointLoss >= 0.08;
 }

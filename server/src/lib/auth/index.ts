@@ -23,6 +23,11 @@ function createAuth(database: mongo.Db) {
         throw new Error("auth secret not specified.");
     }
 
+    const googleOAuthEnabled = Boolean(
+        process.env.GOOGLE_OAUTH_CLIENT_ID
+        && process.env.GOOGLE_OAUTH_CLIENT_SECRET
+    );
+
     return betterAuth({
         baseURL: `${process.env.ORIGIN}/auth/account`,
         secret: process.env.AUTH_SECRET,
@@ -56,12 +61,14 @@ function createAuth(database: mongo.Db) {
                 plaintextFallback: `Please verify your WintrChess account: ${url}`
             })
         },
-        socialProviders: {
-            google: {
-                clientId: process.env.GOOGLE_OAUTH_CLIENT_ID!,
-                clientSecret: process.env.GOOGLE_OAUTH_CLIENT_SECRET!
+        socialProviders: googleOAuthEnabled
+            ? {
+                google: {
+                    clientId: process.env.GOOGLE_OAUTH_CLIENT_ID!,
+                    clientSecret: process.env.GOOGLE_OAUTH_CLIENT_SECRET!
+                }
             }
-        },
+            : undefined,
         user: {
             modelName: Collection.USERS,
             additionalFields: additionalUserFields,

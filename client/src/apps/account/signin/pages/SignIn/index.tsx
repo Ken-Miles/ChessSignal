@@ -27,6 +27,8 @@ function SignIn() {
     const [ email, setEmail ] = useState("");
     const [ password, setPassword ] = useState("");
 
+    const googleLoginEnabled = Boolean(process.env.GOOGLE_OAUTH_CLIENT_ID);
+
     const [ status, setStatus ] = useState<StatusMessage>();
 
     useAuthErrorReporter(setStatus);
@@ -57,19 +59,23 @@ function SignIn() {
                 {t("signIn.loginTitle")}
             </span>
 
-            <Button
-                icon={iconGoogle}
-                iconSize="28px"
-                className={styles.submitButton}
-                style={{ gap: "10px" }}
-                onClick={googleLogin}
-            >
-                {t("signIn.loginButtonGoogle")}
-            </Button>
+            {googleLoginEnabled && <>
+                <Button
+                    icon={iconGoogle}
+                    iconSize="28px"
+                    className={styles.submitButton}
+                    style={{ gap: "10px" }}
+                    onClick={googleLogin}
+                >
+                    {t("signIn.loginButtonGoogle")}
+                </Button>
 
-            <Separator style={{ margin: 0 }}>
-                <b>{t("signIn.alternative")}</b>
-            </Separator>
+                <Separator style={{ margin: 0 }}>
+                    <b>{t("signIn.alternative")}</b>
+                </Separator>
+            </>}
+
+            {!googleLoginEnabled && <Separator style={{ margin: 0 }} />}
 
             <TextField
                 wrapperStyle={{ width: "100%" }}
