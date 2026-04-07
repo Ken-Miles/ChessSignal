@@ -1,6 +1,17 @@
 node_modules
 */dist
 .env
+
+# VS code ignores
 .vs
 .VSCodeCounter
-.vscode
+.vscode/
+
+# Mac stuff
+.DS_Store
+
+# python stuff
+.venv/
+
+# chess image rendering
+chessglyphs/
