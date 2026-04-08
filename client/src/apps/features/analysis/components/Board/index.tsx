@@ -23,11 +23,29 @@ function getPieceType(piece: Piece) {
     return piece.at(1)?.toLowerCase() as PieceSymbol;
 }
 
+function getClockTimeMs(
+    clock: { whiteMs?: number; blackMs?: number } | undefined,
+    playerColour: PieceColour
+) {
+    if (!clock) return undefined;
+
+    return playerColour == PieceColour.WHITE ? clock.whiteMs : clock.blackMs;
+}
+
+function getActiveMoveColour(fen: string) {
+    const turnToken = fen.split(" ")[1];
+
+    return turnToken == "b"
+        ? PieceColour.BLACK
+        : PieceColour.WHITE;
+}
+
 function Board({
     className,
     style,
     profileClassName,
     profileStyle,
+    showPlayerClocks = true,
     whiteProfile,
     blackProfile,
     theme,
@@ -54,6 +72,8 @@ function Board({
     const bottomProfile = flipped ? blackProfile : whiteProfile;
     const topProfileColour = flipped ? PieceColour.WHITE : PieceColour.BLACK;
     const bottomProfileColour = flipped ? PieceColour.BLACK : PieceColour.WHITE;
+    const boardClock = node.state.clock;
+    const activeMoveColour = getActiveMoveColour(node.state.fen);
 
     function onSquareClick(square: Square, piece?: Piece) {
         squares.setHighlighted([]);
@@ -126,6 +146,9 @@ function Board({
                 profile={topProfile}
                 playerColour={topProfileColour}
                 currentFen={node.state.fen}
+                showClock={showPlayerClocks}
+                clockTimeMs={getClockTimeMs(boardClock, topProfileColour)}
+                clockActive={activeMoveColour == topProfileColour}
             />
         </div>}
 
@@ -156,6 +179,10 @@ function Board({
                     customSquare={squareRenderer}
                     customArrows={arrows}
                     arePiecesDraggable={piecesDraggable}
+                    boardWidth={Math.max(
+                        320,
+                        boardWidth - (evaluation ? 22 : 0)
+                    )}
                     customLightSquareStyle={theme?.lightSquareColour
                         ? { backgroundColor: theme.lightSquareColour }
                         : undefined
@@ -168,7 +195,6 @@ function Board({
                     showPromotionDialog={!!heldPromotion}
                     promotionToSquare={heldPromotion?.to}
                     promotionDialogVariant="vertical"
-                    boardWidth={boardWidth - (evaluation ? 22 : 0)}
                 />
             </SquaresContext.Provider>
         </div>
@@ -181,6 +207,9 @@ function Board({
                 profile={bottomProfile}
                 playerColour={bottomProfileColour}
                 currentFen={node.state.fen}
+                showClock={showPlayerClocks}
+                clockTimeMs={getClockTimeMs(boardClock, bottomProfileColour)}
+                clockActive={activeMoveColour == bottomProfileColour}
             />
         </div>}
     </div>;

@@ -58,6 +58,7 @@ function BoardArea() {
         profileClassName={styles.boardProfile}
         whiteProfile={analysisGame.players.white}
         blackProfile={analysisGame.players.black}
+        showPlayerClocks={analysisGame.timeControl != undefined}
         theme={{
             lightSquareColour: theme.board.lightSquareColour,
             darkSquareColour: theme.board.darkSquareColour

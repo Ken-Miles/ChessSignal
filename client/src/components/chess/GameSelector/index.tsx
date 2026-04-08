@@ -1,11 +1,13 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useSearchParams } from "react-router-dom";
 import { trim } from "lodash-es";
 
 import { Game, getColourPlayed } from "shared/types/game/Game";
 import PieceColour from "shared/constants/PieceColour";
 import {
     GameSource,
+    getGameSource,
     GameSourceType,
     GameSelectorButton
 } from "@/components/chess/GameSelector/GameSource";
@@ -14,6 +16,12 @@ import useAnalysisBoardStore from "@/apps/features/analysis/stores/AnalysisBoard
 import Button from "@/components/common/Button";
 import FileUploader from "@/components/common/FileUploader";
 import GameSearchMenu from "../GameSearchMenu";
+import {
+    analysisSelectionUrlKeyList,
+    getAnalysisSelectionFromUrl,
+    isChessComGameUrl,
+    updateAnalysisSelectionUrl
+} from "@analysis/lib/selectionUrl";
 
 import GameSelectorProps from "./GameSelectorProps";
 import * as styles from "./GameSelector.module.css";
@@ -31,11 +39,14 @@ const sourcePlaceholderKeys: Record<GameSourceType, string> = {
 function GameSelector({
     style,
     saveLocalStorage,
+    syncUrlState,
     onGameSelect
 }: GameSelectorProps) {
     const { t } = useTranslation("analysis");
+    const [ searchParams, setSearchParams ] = useSearchParams();
 
     const {
+        setSelectedGame,
         savedGameSource,
         setSavedGameSource,
         savedFieldInputs,
@@ -69,14 +80,84 @@ function GameSelector({
 
     const [ searchMenuOpen, setSearchMenuOpen ] = useState(false);
 
+    const urlSelection = useMemo(() => syncUrlState
+        ? getAnalysisSelectionFromUrl(searchParams)
+        : undefined,
+    [syncUrlState, searchParams]);
+    const hasUrlSelection = syncUrlState
+        && analysisSelectionUrlKeyList.some(key => searchParams.has(key));
+
+    useEffect(() => {
+        if (!syncUrlState) return;
+        if (!hasUrlSelection) return;
+        if (!urlSelection) return;
+
+        const nextGameSource = getGameSource(urlSelection.sourceKey);
+
+        setGameSource(nextGameSource);
+
+        if (urlSelection.perspective) {
+            setBoardFlipped(urlSelection.perspective == "black");
+        }
+
+        setFieldInputs(previousFieldInputs => {
+            if (previousFieldInputs[nextGameSource.key] == urlSelection.input) {
+                return previousFieldInputs;
+            }
+
+            return {
+                ...previousFieldInputs,
+                [nextGameSource.key]: urlSelection.input
+            };
+        });
+    }, [
+        syncUrlState,
+        urlSelection?.sourceKey,
+        urlSelection?.input,
+        urlSelection?.perspective
+    ]);
+
+    function persistUrlSelection(
+        sourceKey: GameSourceType,
+        input: string,
+        perspective: "white" | "black" | "auto" = "auto"
+    ) {
+        if (!syncUrlState) return;
+
+        setSearchParams(updateAnalysisSelectionUrl(searchParams, {
+            sourceKey,
+            fieldInput: input,
+            perspective
+        }));
+    }
+
+    function getChessComSelectionInput(game: Game) {
+        const chessComSource = game.source?.chessCom;
+
+        if (chessComSource?.gameUrl) return chessComSource.gameUrl;
+
+        if (chessComSource?.gameType && chessComSource.gameId) {
+            return `https://www.chess.com/game/${chessComSource.gameType}/${chessComSource.gameId}`;
+        }
+
+        return currentFieldInput;
+    }
+
     // Emit selected game when it updates
     useEffect(() => {
+        if (
+            gameSource.key == GameSource.CHESS_COM.key
+            && isChessComGameUrl(currentFieldInput)
+        ) {
+            return onGameSelect?.(currentFieldInput);
+        }
+
         if (gameSource.selectorButton == GameSelectorButton.SEARCH_GAMES) {
             return onGameSelect?.(serviceGames[gameSource.key]);
         }
 
         onGameSelect?.(currentFieldInput || null);
-    }, [currentFieldInput, serviceGames]);
+    }, [currentFieldInput, serviceGames, gameSource, onGameSelect]);
 
     function updateFieldInput(value: string) {
         const updatedFieldInputs = {
@@ -84,7 +165,13 @@ function GameSelector({
             [gameSource.key]: value
         };
 
+        setSelectedGame(null);
+
         setFieldInputs(updatedFieldInputs);
+
+        if (syncUrlState) {
+            persistUrlSelection(gameSource.key, value);
+        }
 
         if (!saveLocalStorage) return;
         setSavedFieldInput(gameSource.key, value);
@@ -92,6 +179,7 @@ function GameSelector({
 
     function openGameSearchMenu() {
         if (currentFieldInput.length == 0) return;
+        if (gameSource.key == GameSource.CHESS_COM.key && isChessComGameUrl(currentFieldInput)) return;
 
         setSearchMenuOpen(true);
     }
@@ -110,6 +198,14 @@ function GameSelector({
                     ) || GameSource.PGN;
 
                     setGameSource(newGameSource);
+                    setSelectedGame(null);
+
+                    if (syncUrlState) {
+                        persistUrlSelection(
+                            newGameSource.key,
+                            fieldInputs[newGameSource.key] || ""
+                        );
+                    }
 
                     if (!saveLocalStorage) return;
                     setSavedGameSource(newGameSource.key);
@@ -195,6 +291,16 @@ function GameSelector({
                 );
 
                 setBoardFlipped(usersColour == PieceColour.BLACK);
+
+                if (syncUrlState) {
+                    persistUrlSelection(
+                        gameSource.key,
+                        gameSource.key == GameSource.CHESS_COM.key && game
+                            ? getChessComSelectionInput(game)
+                            : currentFieldInput,
+                        usersColour == PieceColour.BLACK ? "black" : "white"
+                    );
+                }
             }}
         />}
     </div>;

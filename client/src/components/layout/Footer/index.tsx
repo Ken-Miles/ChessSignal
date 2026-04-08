@@ -43,9 +43,9 @@ function Footer({ className, style }: FooterProps) {
                 Copyright © {copyrightYear} wintrchess.com
             </span>
 
-            <span className={styles.copyrightNotice}>
-                All rights reserved
-            </span>
+            {/* <span className={styles.copyrightNotice}>
+                Analysis, help, and site settings in one place.
+            </span> */}
         </div>
 
         <div className={styles.links}>

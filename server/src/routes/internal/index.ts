@@ -19,7 +19,16 @@ router.use("/internal",
 
 router.use("/internal",
     internalAuthenticator(true),
-    appRouter("internal.html")
+    appRouter({
+        bundleName: "internal",
+        meta: {
+            title: "Internal",
+            description: "WintrChess internal tools.",
+            ogTitle: "♟️ WintrChess - Internal",
+            ogDescription: "WintrChess internal tools.",
+            robots: "noindex, nofollow"
+        }
+    })
 );
 
 export default router;

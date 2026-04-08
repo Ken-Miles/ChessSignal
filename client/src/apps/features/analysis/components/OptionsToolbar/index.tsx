@@ -19,6 +19,10 @@ import SettingsDialog from "../SettingsDialog";
 import ShareDialog from "../ShareDialog";
 import displayToast from "@/lib/toast";
 import { archiveGame } from "@/lib/gameArchive";
+import {
+    analysisSelectionUrlKeyList,
+    updateAnalysisPerspectiveUrl
+} from "@analysis/lib/selectionUrl";
 
 import * as styles from "./OptionsToolbar.module.css";
 
@@ -73,7 +77,7 @@ function OptionsToolbar() {
     function back() {
         setSearchParams(omit(
             Object.fromEntries(searchParams.entries()),
-            ["game"]
+            ["game", ...analysisSelectionUrlKeyList]
         ));
 
         // Abort any ongoing evaluations or analyses
@@ -146,7 +150,15 @@ function OptionsToolbar() {
                 icon={iconFlip}
                 iconSize={"40px"}
                 tooltipId={"options-toolbar-flip"}
-                onClick={() => setBoardFlipped(!boardFlipped)}
+                onClick={() => {
+                    const nextBoardFlipped = !boardFlipped;
+
+                    setBoardFlipped(nextBoardFlipped);
+                    setSearchParams(updateAnalysisPerspectiveUrl(
+                        searchParams,
+                        nextBoardFlipped ? "black" : "white"
+                    ));
+                }}
             />
 
             <Tooltip

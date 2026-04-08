@@ -11,6 +11,7 @@ interface BoardProps {
     style?: CSSProperties;
     profileClassName?: string;
     profileStyle?: CSSProperties;
+    showPlayerClocks?: boolean;
     whiteProfile?: PlayerProfile;
     blackProfile?: PlayerProfile;
     node?: StateTreeNode;

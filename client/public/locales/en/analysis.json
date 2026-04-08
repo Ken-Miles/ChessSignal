@@ -25,7 +25,7 @@
             "version": "Version",
             "depth": "Depth",
             "lines": "Number of Lines",
-            "linesWarning": "At least 2 lines are required for Critical and some Brilliant moves.",
+            "linesWarning": "At least 2 lines are required for Great and some Brilliant moves.",
             "timeLimit": "Time Limit (seconds)",
             "suggestionArrows": {
                 "title": "Suggestion Arrows",
@@ -120,7 +120,7 @@
         "insufficientLines": "Make sure the previous move is fully evaluated for a classification.",
         "classifications": {
             "brilliant": "is brilliant",
-            "critical": "is the only good move",
+            "critical": "is a great move",
             "best": "is the best move",
             "excellent": "is excellent",
             "okay": "is an okay move",
@@ -129,13 +129,14 @@
             "blunder": "is a blunder",
             "forced": "is forced",
             "theory": "is a book move",
+            "miss": "is a miss",
             "risky": "is a risky idea"
         },
         "alternative": "The best move was"
     },
     "classifications": {
         "brilliant": "Brilliant",
-        "critical": "Critical",
+        "critical": "Great",
         "best": "Best",
         "excellent": "Excellent",
         "okay": "Okay",

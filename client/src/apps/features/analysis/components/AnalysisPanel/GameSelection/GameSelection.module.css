@@ -4,3 +4,12 @@
     
     color: grey;
 }
+
+.selectedGameMessage {
+    width: 100%;
+    text-align: center;
+    color: #9fb3c7;
+    font-size: 0.85rem;
+    line-height: 1.25;
+    overflow-wrap: anywhere;
+}

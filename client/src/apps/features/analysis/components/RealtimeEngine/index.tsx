@@ -171,21 +171,25 @@ function RealtimeEngine({
             </span>
         </span>
 
-        {displayedLines.map((line, index) => <>
+        {displayedLines.map((line, index) => <React.Fragment
+            key={line.index ?? `${line.moves.at(0)?.uci || "line"}-${index}`}
+        >
             <EngineLineInfo line={line} key={line.index} />
 
             {index != (displayedLines.length - 1)
                 && <hr className={styles.engineLineSeparator} />
             }
-        </>)}
+        </React.Fragment>)}
 
         {displayedLines.at(0)?.depth != 0
             && range(
                 Math.max(0, expectedLineCount - displayedLines.length)
-            ).map(() => <>
+            ).map((_, index) => <React.Fragment
+                key={`skeleton-${index}`}
+            >
                 <hr className={styles.engineLineSeparator} />
                 <SkeletonLine/>
-            </>)
+            </React.Fragment>)
         }
 
         {evaluationError && <LogMessage>

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 import useAuthErrors from "@/hooks/auth/useAuthErrors";
 import useAuthErrorReporter from "../../hooks/useAuthErrorReporter";
@@ -117,6 +117,16 @@ function SignIn() {
             <span className={styles.legalMessage}>
                 {t("signIn.legalMessage")}
             </span>
+
+            <div className={styles.legalLinks}>
+                <Link to="/terms">
+                    {t("footer.termsOfService", { ns: "common" })}
+                </Link>
+
+                <Link to="/privacy">
+                    {t("footer.privacyPolicy", { ns: "common" })}
+                </Link>
+            </div>
         </div>
     </div>;
 }

@@ -9,6 +9,10 @@ export const boardStateSchema = z.object({
     fen: z.string(),
     move: moveSchema.optional(),
     moveColour: z.enum(PieceColour).optional(),
+    clock: z.object({
+        whiteMs: z.number().nonnegative().optional(),
+        blackMs: z.number().nonnegative().optional()
+    }).optional(),
     engineLines: z.array(engineLineSchema),
     classification: z.enum(Classification).optional(),
     accuracy: z.number().optional(),

@@ -6,7 +6,11 @@ import {
 } from "shared/types/game/position/StateTreeNode";
 import { Classification } from "shared/constants/Classification";
 import useSettingsStore from "@/stores/SettingsStore";
-import { classificationImages } from "@analysis/constants/classifications";
+import {
+    classificationColours,
+    classificationImages,
+    highlightedClassifications
+} from "@analysis/constants/classifications";
 
 import * as styles from "./MainlineMoveList.module.css";
 
@@ -23,6 +27,12 @@ interface Row {
     black?: any;
 }
 
+interface TimestampCellData {
+    text: string;
+    barWidthPx: number;
+    timeValue: number;
+}
+
 const pieceClassNameByFigure = {
     K: "king",
     Q: "queen",
@@ -35,9 +45,11 @@ function getFigurineColor(
     classification: Classification | undefined,
     isWhiteMove: boolean
 ) {
-    if (classification == Classification.INACCURACY) return "#f4bf44";
-    if (classification == Classification.MISTAKE) return "#df8e2b";
-    if (classification == Classification.BLUNDER) return "#f15642";
+
+    if (classification != undefined
+            && highlightedClassifications.includes(classification)) {
+        return classificationColours[classification as Classification];
+    }
 
     return isWhiteMove ? "#f6f7f8" : "#cbd1d8";
 }
@@ -70,6 +82,38 @@ function annotationClass(classification?: Classification) {
     if (classification == Classification.BLUNDER) return styles.blunder;
 
     return "";
+}
+
+function formatMoveTime(durationMs?: number) {
+    if (durationMs == undefined || Number.isNaN(durationMs)) {
+        return undefined;
+    }
+
+    return `${(durationMs / 1000).toFixed(1)}s`;
+}
+
+function getTimestampCellData(
+    durationMs: number | undefined,
+    maxDurationMs: number
+): TimestampCellData | undefined {
+    const text = formatMoveTime(durationMs);
+
+    if (!text || maxDurationMs <= 0 || !durationMs) {
+        return;
+    }
+
+    const maxBarWidthPx = 30;
+    const scaledRatio = Math.sqrt(durationMs / maxDurationMs);
+    const barWidthPx = Math.max(
+        7,
+        scaledRatio * maxBarWidthPx
+    );
+
+    return {
+        text,
+        barWidthPx,
+        timeValue: durationMs / 1000
+    };
 }
 
 function MainlineMoveList({
@@ -107,6 +151,21 @@ function MainlineMoveList({
         return generatedRows;
     }, [stateTreeRootNode]);
 
+    const maxMoveDurationMs = useMemo(() => {
+        const maxDuration = rows.flatMap(row => [
+            row.white?.state.move?.clock?.spentMs,
+            row.black?.state.move?.clock?.spentMs
+        ]).reduce((max, value) => {
+            if (value == undefined || Number.isNaN(value)) {
+                return max;
+            }
+
+            return Math.max(max, value);
+        }, 0);
+
+        return maxDuration;
+    }, [rows]);
+
     useEffect(() => {
         if (!selectedNodeId) return;
 
@@ -125,6 +184,9 @@ function MainlineMoveList({
         const parsed = parseSanForFigurine(san, isWhiteMove);
         const classification = node.state.classification as Classification | undefined;
         const figurineColor = getFigurineColor(classification, isWhiteMove);
+        const showAnnotationIcon = classification
+            && !hideClassifications
+            && parsed.piece;
 
         return <button
             type="button"
@@ -132,22 +194,48 @@ function MainlineMoveList({
             className={styles.moveNode + ` ${isWhiteMove ? styles.whiteMove : styles.blackMove} ${annotationClass(classification)}` + (selectedNodeId == node.id ? ` ${styles.selected}` : "")}
             onClick={() => onMoveClick(node)}
         >
-            {classification && !hideClassifications && <img
+            {showAnnotationIcon && <img
                 src={classificationImages[classification]}
                 width={14}
                 height={14}
                 className={styles.annotationIcon}
             />}
 
-            <span className={styles.moveText}>
-                {parsed.piece && <span
-                    className={`icon-font-chess ${parsed.pieceClass} ${styles.figurine}`}
-                    style={{ color: figurineColor }}
-                />}
+            <span className={styles.moveContent}>
+                <span className={styles.moveText}>
+                    {parsed.piece && <span
+                        className={`icon-font-chess ${parsed.pieceClass} ${styles.figurine}`}
+                        style={{ color: figurineColor }}
+                    />}
 
-                {parsed.text}
+                    {parsed.text}
+                </span>
             </span>
         </button>;
+    }
+
+    function renderTimestampCell(
+        node: any,
+        className: string
+    ) {
+        const spentMs = node?.state.move?.clock?.spentMs;
+        const timestamp = getTimestampCellData(spentMs, maxMoveDurationMs);
+
+        if (!timestamp) {
+            return <div className={`${styles.timeCell} ${className} ${styles.timeEmpty}`}></div>;
+        }
+
+        return <div
+            data-move-list-el="timestamp"
+            data-time={timestamp.timeValue}
+            className={`${styles.timeCell} ${className}`}
+            style={{
+                ["--timeValue" as string]: timestamp.timeValue,
+                ["--timeBarWidth" as string]: `${timestamp.barWidthPx}px`
+            }}
+        >
+            <span className={styles.timeLabel}>{timestamp.text}</span>
+        </div>;
     }
 
     return <div ref={wrapperRef} className={`${styles.wrapper} ${className || ""}`}>
@@ -160,7 +248,15 @@ function MainlineMoveList({
 
             {row.white && renderMoveCell(row.white, true)}
 
-            {row.black && renderMoveCell(row.black, false)}
+            {row.black
+                ? renderMoveCell(row.black, false)
+                : <div className={styles.blackMovePlaceholder}></div>
+            }
+
+            <div className={styles.timeStack}>
+                {renderTimestampCell(row.white, styles.timeWhite)}
+                {renderTimestampCell(row.black, styles.timeBlack)}
+            </div>
         </div>)}
     </div>;
 }

@@ -229,6 +229,68 @@
 :global(.captured-pieces-b-queen) { background-position: -14.5rem -41.7rem; }
 :global(.captured-pieces-w-queen) { background-position: -50.4rem -41.7rem; }
 
+.clock {
+    display: inline-flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0;
+    min-width: 74px;
+    height: 32px;
+    border-radius: 3px;
+    border: 1px solid #5a6068;
+    padding: 0 6px;
+    transition: background-color 120ms ease, color 120ms ease, border-color 120ms ease;
+}
+
+.clockIcon {
+    display: inline-flex;
+    width: 16px;
+    height: 16px;
+    opacity: 0.92;
+}
+
+.clockIcon svg {
+    fill: currentcolor;
+    width: 100%;
+    height: 100%;
+    transform-origin: 50% 50%;
+    transition: transform 120ms linear;
+}
+
+.clockTime {
+    font-size: 0.94rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    font-family: "Chess V3", "JetBrains Mono", monospace;
+    letter-spacing: 0.01em;
+    line-height: 1;
+}
+
+.clockWhite {
+    border-color: #8a8f98;
+}
+
+.clockBlack {
+    border-color: #4d535b;
+}
+
+.clockInactive {
+    background-color: #1e2329;
+    color: #c8ced8;
+}
+
+.clockActive {
+    background-color: #f4f6f8;
+    color: #1b1e22;
+    border-color: #d6dbe2;
+}
+
+.clockLowTime {
+    background-color: #ad1f24;
+    border-color: #ad1f24;
+    color: #ffffff;
+}
+
 @media all and (-webkit-min-device-pixel-ratio: 2), all and (min-resolution: 192dpi), all and (min-resolution: 2dppx) {
     :global(.captured-pieces-cpiece) {
         background-size: 34.2rem 30.6rem;
@@ -264,24 +326,4 @@
     :global(.captured-pieces-w-2-rooks) { background-position: -30rem -0.1rem; }
     :global(.captured-pieces-b-queen) { background-position: -14.5rem 0.1rem; }
     :global(.captured-pieces-w-queen) { background-position: -32.5rem 0.1rem; }
-}
-
-.clock {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 64px;
-    height: 28px;
-    border: 1px solid #5a6068;
-    border-radius: 4px;
-    background-color: #1f2328;
-    padding: 0 8px;
-}
-
-.clockTime {
-    color: #dde2e8;
-    font-size: 0.88rem;
-    font-variant-numeric: tabular-nums;
-    font-weight: 700;
-    font-family: "JetBrains Mono", monospace;
 }

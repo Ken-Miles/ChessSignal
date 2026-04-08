@@ -69,6 +69,7 @@ function EngineLine({ line }: EngineLineProps) {
         {
             line.moves.map((move, index) => (
                 <span
+                    key={`${line.depth}-${line.index}-${move.uci}-${index}`}
                     className={styles.lineMove}
                     onClick={() => traverseToLineMove(index)}
                 >

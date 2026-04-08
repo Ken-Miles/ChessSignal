@@ -104,7 +104,12 @@ function ClassifiedMoveCard() {
         + t(
             "classifiedMoveCard.classifications."
             + node.state.classification,
-            { ns: "analysis" }
+            {
+                ns: "analysis",
+                defaultValue: node.state.classification == Classification.MISS
+                    ? "is a miss"
+                    : undefined
+            }
         )
     );
 
@@ -129,13 +134,15 @@ function ClassifiedMoveCard() {
             }
         >
             <div className={styles.classification}>
-                <img src={nodeClassification
-                    ? classificationImages[nodeClassification]
-                    : (realtimeClassifyError
-                        ? errorClassificationIcon
-                        : loadingClassificationIcon
-                    )
-                }/>
+                {nodeClassification != Classification.MISS
+                    && <img src={nodeClassification
+                        ? classificationImages[nodeClassification]
+                        : (realtimeClassifyError
+                            ? errorClassificationIcon
+                            : loadingClassificationIcon
+                        )
+                    }/>
+                }
 
                 <span
                     className={styles.classificationName}

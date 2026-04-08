@@ -15,7 +15,7 @@ function Advertisement({
         if (!pubId) return;
 
         const scriptSelector = (
-            'script[src*="pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"]'
+            "script[src*=\"pagead2.googlesyndication.com/pagead/js/adsbygoogle.js\"]"
         );
 
         if (!document.querySelector(scriptSelector)) {

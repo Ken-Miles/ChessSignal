@@ -46,9 +46,8 @@ function EvaluationGraphArea() {
     const activeEngineLabel = engineVersionLabels[engineSettings.version]
         || "Stockfish";
 
-    const effectiveDepth = getTopEngineLine(
-        currentStateTreeNode.state.engineLines
-    )?.depth ?? engineSettings.depth;
+    const effectiveDepth = engineSettings.depth
+        ?? getTopEngineLine(currentStateTreeNode.state.engineLines)?.depth;
 
     const engineStatusLabel = effectiveDepth != undefined
         ? `Depth ${effectiveDepth}`

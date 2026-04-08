@@ -6,6 +6,16 @@ import Variant from "@/constants/game/Variant";
 import PieceColour from "@/constants/PieceColour";
 import { gamePlayerProfileSchema } from "./GamePlayerProfile";
 
+export interface GameSourceMetadata {
+    chessCom?: {
+        gameId?: string;
+        gameType?: string;
+        gameUrl?: string;
+        clockBaseMs?: number;
+        moveTimestampsMs?: number[];
+    };
+}
+
 export function getColourPlayed(game: Game, username: string) {
     return (
         game.players.white.username?.toLowerCase()
@@ -27,6 +37,8 @@ export const gameSchema = z.object({
     date: z.iso.datetime().optional()
 });
 
-export type Game = z.infer<typeof gameSchema>;
+export type Game = z.infer<typeof gameSchema> & {
+    source?: GameSourceMetadata;
+};
 
 export default Game;

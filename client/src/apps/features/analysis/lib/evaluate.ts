@@ -51,6 +51,15 @@ function createGameEvaluator(
                 break;
             }
 
+            if (options.engineDepth != undefined) {
+                const targetDepth = options.engineDepth;
+
+                cloudEngineLines = cloudEngineLines.map(line => ({
+                    ...line,
+                    depth: Math.min(line.depth, targetDepth)
+                }));
+            }
+
             const topCloudLine = getTopEngineLine(cloudEngineLines);
             if (!topCloudLine) break;
 

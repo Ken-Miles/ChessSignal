@@ -15,7 +15,7 @@ import Evaluation from "shared/types/game/position/Evaluation";
 import { defaultEvaluation } from "shared/constants/utils";
 import { Classification } from "shared/constants/Classification";
 import { getTopEngineLine } from "shared/types/game/position/EngineLine";
-import { classificationColours } from "@analysis/constants/classifications";
+import { classificationColours, highlightedClassifications } from "@analysis/constants/classifications";
 import useAnalysisBoardStore from "@analysis/stores/AnalysisBoardStore";
 
 import EvaluationGraphPoint from "./Point";
@@ -23,14 +23,7 @@ import TooltipRenderer from "./TooltipRenderer";
 import EvaluationGraphProps from "./EvaluationGraphProps";
 import * as styles from "./EvaluationGraph.module.css";
 
-const highlightedClassifications: Classification[] = [
-    Classification.BRILLIANT,
-    Classification.CRITICAL,
-    Classification.RISKY,
-    Classification.INACCURACY,
-    Classification.MISTAKE,
-    Classification.BLUNDER
-];
+
 
 const CHESSCOM_GRAPH_ABS_CP = 1000;
 const CHESSCOM_GRAPH_MATE_CP = 1100;
@@ -82,12 +75,12 @@ function EvaluationGraph({
     const yAxisMin = -CHESSCOM_GRAPH_ABS_CP;
     const yAxisMax = CHESSCOM_GRAPH_ABS_CP;
 
-    const highlightedPoints = dataPoints.filter(point => (
-        point.state.classification
-        && highlightedClassifications.includes(
-            point.state.classification
-        )
-    ));
+    const highlightedPoints = dataPoints.filter(point => {
+        const classification = point.state.classification as Classification | undefined;
+
+        return classification != undefined
+            && highlightedClassifications.includes(classification);
+    });
 
     const selectedPoint = dataPoints[selectedIndex];
 

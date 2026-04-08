@@ -56,10 +56,6 @@ function GameOverviewCard({ analysisGame, accuracies }: GameOverviewCardProps) {
     );
 
     const rows = useMemo<OverviewRow[]>(() => {
-        const greatClassif = Classification.CRITICAL;
-        const bookClassif = Classification.THEORY;
-        const missClassif = Classification.RISKY;
-
         const make = (
             label: string,
             classification: Classification
@@ -73,14 +69,14 @@ function GameOverviewCard({ analysisGame, accuracies }: GameOverviewCardProps) {
 
         return [
             make("Brilliant", Classification.BRILLIANT),
-            make("Great", greatClassif),
-            make("Book", bookClassif),
+            make("Great", Classification.CRITICAL),
+            make("Book", Classification.THEORY),
             make("Best", Classification.BEST),
             make("Excellent", Classification.EXCELLENT),
             make("Good", Classification.OKAY),
             make("Inaccuracy", Classification.INACCURACY),
             make("Mistake", Classification.MISTAKE),
-            make("Miss", missClassif),
+            make("Miss", Classification.MISS),
             make("Blunder", Classification.BLUNDER)
         ];
     }, [nodeChain]);

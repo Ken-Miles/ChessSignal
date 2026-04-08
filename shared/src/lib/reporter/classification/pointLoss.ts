@@ -102,7 +102,8 @@ export function pointLossClassify(
     } else if (pointLoss < 0.11) {
         return Classification.INACCURACY;
     } else if (pointLoss < 0.17) {
-        return Classification.RISKY;
+        //return Classification.RISKY;
+        return Classification.MISS;
     } else if (pointLoss < 0.26) {
         return Classification.MISTAKE;
     } else {

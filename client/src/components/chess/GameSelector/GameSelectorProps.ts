@@ -5,6 +5,7 @@ import Game from "shared/types/game/Game";
 interface GameSelectorProps {
     style?: CSSProperties;
     saveLocalStorage?: boolean;
+    syncUrlState?: boolean;
     onGameSelect?: (game: Game | string | null) => void;
 }
 

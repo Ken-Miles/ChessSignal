@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 import schemas from "shared/constants/account/schemas";
 import { validate } from "shared/lib/utils/validate";
@@ -171,6 +171,16 @@ function SignUp() {
             <span className={styles.legalMessage}>
                 {t("signIn.legalMessage", { ns: "otherPages" })}
             </span>
+
+            <div className={styles.legalLinks}>
+                <Link to="/terms">
+                    {t("footer.termsOfService", { ns: "common" })}
+                </Link>
+
+                <Link to="/privacy">
+                    {t("footer.privacyPolicy", { ns: "common" })}
+                </Link>
+            </div>
         </div>
     </div>;
 }

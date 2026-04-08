@@ -5,23 +5,23 @@
 
 
 ### Config-gated third-party integrations
-- [ ] Load Google AdSense only when its key/config is present
-- [ ] Load Google Login only when its key/config is present
+- [x] Load Google AdSense only when its key/config is present
+- [x] Load Google Login only when its key/config is present
 
 ### HTML templating and boilerplate cleanup
-- [ ] Add some kind of HTML templating for shared head elements (title, meta, etc)
-- [ ] Remove unused CSS and JS imports from HTML templates
-- [ ] Remove unused HTML templates (example: `legal.html` if not needed)
-- [ ] Ensure all HTML templates have consistent structure 
-    - [ ] Ensure all templates and pages have good/up to date metadata (via head templating, etc)
+- [x] Add some kind of HTML templating for shared head elements (title, meta, etc)
+- [x] Remove unused CSS and JS imports from HTML templates
+- [x] Remove unused HTML templates (example: `legal.html` if not needed)
+- [x] Ensure all HTML templates have consistent structure 
+    - [x] Ensure all templates and pages have good/up to date metadata (via head templating, etc)
 
 ### Immediate UX fixes
 - [ ] Improve game selection behavior
 - [ ] Show that a game is selected (prefer URL state)
 - [ ] Ensure selecting a new game cleanly overwrites previous state
-- [ ] Hide timer for games with no time information
-- [ ] Link to privacy/terms in login page
-- [ ] Update site footer to look cleaner and be more useful/smaller
+- [x] Hide timer for games with no time information
+- [x] Link to privacy/terms in login page
+- [x] Update site footer to look cleaner and be more useful/smaller
 
 ### Branding and fork cleanup
 - [ ] Make site identity more distinct from upstream fork
@@ -38,14 +38,14 @@
 ## Milestone 1: URL state and deep-linking
 
 ### URL as source of truth
-- [ ] Write game context into URL for analytics and persistence
-- [ ] Add URL params like `chesscom_game_id`, `chessgametype`, `chesscom_username`, and equivalent params for Lichess
-- [ ] Add URL param for perspective side (`white`, `black`, `auto`)
-- [ ] `auto` rule: use selected player's side when username is known, otherwise default to white
+- [x] Write game context into URL for analytics and persistence
+- [x] Add URL params like `chesscom_game_id`, `chessgametype`, `chesscom_username`, and equivalent params for Lichess
+- [x] Add URL param for perspective side (`white`, `black`, `auto`)
+- [x] `auto` rule: use selected player's side when username is known, otherwise default to white
 
 ### Loading by game URL
-- [ ] Support loading from a chess.com game URL (not only username)
-- [ ] Reuse/port URL parsing logic from chesstrackerbot
+- [x] Support loading from a chess.com game URL (not only username)
+- [x] Reuse/port URL parsing logic from chesstrackerbot
 
 ## Milestone 2: Chess.com data access strategy
 

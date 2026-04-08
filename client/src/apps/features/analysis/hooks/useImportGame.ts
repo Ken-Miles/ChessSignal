@@ -1,6 +1,8 @@
 import { useTranslation } from "react-i18next";
 
 import AnalysedGame from "shared/types/game/AnalysedGame";
+import { getColourPlayed } from "shared/types/game/Game";
+import PieceColour from "shared/constants/PieceColour";
 import { GameSelectorButton, GameSource } from "@/components/chess/GameSelector/GameSource";
 import useGameSelector, { SelectedGame } from "@/hooks/useGameSelector";
 import useAnalysisGameStore from "@analysis/stores/AnalysisGameStore";
@@ -10,6 +12,10 @@ import {
     getChessComProfileImages,
     isGameFromChessCom
 } from "@/lib/profileImages";
+import {
+    getChessComGame,
+    parseChessComGameSelection
+} from "@/lib/games/chessCom";
 import getChessComGames from "@/lib/games/chessCom";
 import getLichessGames from "@/lib/games/lichess";
 import parsePgn from "@/lib/games/pgn";
@@ -35,17 +41,41 @@ function useImportGame() {
         setGameAnalysisOpen
     } = useAnalysisGameStore();
 
-    const { setCurrentStateTreeNode } = useAnalysisBoardStore();
+    const {
+        setCurrentStateTreeNode,
+        setBoardFlipped,
+        setAutoplayEnabled
+    } = useAnalysisBoardStore();
 
-    function convertSelectedGame(selectedGame: SelectedGame) {
+    async function convertSelectedGame(selectedGame: SelectedGame) {
         if (typeof selectedGame == "string") {
             if (selectedGame.length == 0) return null;
 
             try {
+                const parsedChessComSelection = parseChessComGameSelection(selectedGame);
+
+                if (parsedChessComSelection) {
+                    const callbackGame = await getChessComGame(selectedGame);
+
+                    if (callbackGame.status != 200 || !callbackGame.game) {
+                        throw new Error(t(messages.invalidGame));
+                    }
+
+                    return callbackGame.game;
+                }
+
                 if (savedGameSource.key == GameSource.PGN.key) {
                     return parsePgn(selectedGame);
                 } else if (savedGameSource.key == GameSource.FEN.key) {
                     return parseFenString(selectedGame);
+                } else if (savedGameSource.key == GameSource.CHESS_COM.key) {
+                    return getChessComGame(selectedGame).then(response => {
+                        if (response.status != 200 || !response.game) {
+                            throw new Error(t(messages.invalidGame));
+                        }
+
+                        return response.game;
+                    });
                 }
             } catch {
                 throw new Error(t(messages.invalidGame));
@@ -60,7 +90,22 @@ function useImportGame() {
     async function importSelectedGame(
         onStatusMessage?: (message?: string) => void
     ) {
-        let importedGame = convertSelectedGame(selectedGame);
+        const selectedGameWasString = typeof selectedGame == "string";
+        let importedGame = await convertSelectedGame(selectedGame);
+
+        if (
+            !importedGame
+            && savedGameSource.key == GameSource.CHESS_COM.key
+            && parseChessComGameSelection(savedCurrentFieldInput)
+        ) {
+            const callbackGame = await getChessComGame(savedCurrentFieldInput);
+
+            if (callbackGame.status != 200 || !callbackGame.game) {
+                throw new Error(t(messages.invalidGame));
+            }
+
+            importedGame = callbackGame.game;
+        }
 
         if (!importedGame) {
             if (
@@ -103,6 +148,18 @@ function useImportGame() {
             stateTree: parseStateTree(importedGame!)
         };
 
+        if (selectedGameWasString) {
+            if (
+                savedGameSource.key == GameSource.CHESS_COM.key
+                && !parseChessComGameSelection(selectedGame || "")
+            ) {
+                setBoardFlipped(
+                    getColourPlayed(analysisGame, savedCurrentFieldInput)
+                    == PieceColour.BLACK
+                );
+            }
+        }
+        setAutoplayEnabled(false);
         setAnalysisGame(analysisGame);
         setCurrentStateTreeNode(analysisGame.stateTree);
         setGameAnalysisOpen(true);

@@ -59,3 +59,18 @@
     color: gray;
     font-size: 0.7rem;
 }
+
+.legalLinks {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+
+    color: gray;
+    font-size: 0.7rem;
+}
+
+.legalLinks a {
+    color: inherit;
+    text-decoration: underline;
+}

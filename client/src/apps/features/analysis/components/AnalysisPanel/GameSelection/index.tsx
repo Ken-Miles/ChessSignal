@@ -11,7 +11,7 @@ import AnalyseButton from "../../AnalyseButton";
 import * as styles from "./GameSelection.module.css";
 
 function GameSelection() {
-    const { setSelectedGame } = useGameSelector();
+    const { selectedGame, setSelectedGame } = useGameSelector();
 
     const setEvaluationController = useAnalysisProgressStore(
         state => state.setEvaluationController
@@ -22,6 +22,18 @@ function GameSelection() {
 
     const importSelectedGame = useImportGame();
     const evaluateGame = useEvaluateGame();
+
+    function describeSelectedGame() {
+        if (!selectedGame) return undefined;
+
+        if (typeof selectedGame == "string") {
+            return selectedGame.length > 68
+                ? `${selectedGame.slice(0, 65)}...`
+                : selectedGame;
+        }
+
+        return `${selectedGame.players.white.username} vs ${selectedGame.players.black.username}`;
+    }
 
     async function onAnalyseClick() {
         try {
@@ -38,10 +50,15 @@ function GameSelection() {
     return <>
         <GameSelector
             saveLocalStorage
+            syncUrlState
             onGameSelect={setSelectedGame}
         />
 
         <AnalyseButton onClick={onAnalyseClick} />
+
+        {describeSelectedGame() && <div className={styles.selectedGameMessage}>
+            Selected: {describeSelectedGame()}
+        </div>}
 
         {statusMessage && <i className={styles.statusMessage}>
             {statusMessage}
