@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Chessboard } from "react-chessboard";
 import { Piece, Square } from "react-chessboard/dist/chessboard/types";
 import { Chess, Move, PieceSymbol } from "chess.js";
@@ -18,6 +18,28 @@ import BoardProps from "./BoardProps";
 import * as styles from "./Board.module.css";
 
 type ClickMove = Pick<Move, "from" | "to">;
+type PieceElementCache = Map<string, React.ReactElement>;
+
+interface PieceImageProps {
+    src: string;
+    squareWidth: number;
+}
+
+const PieceImage = React.memo(function PieceImage({
+    src,
+    squareWidth
+}: PieceImageProps) {
+    return <img
+        src={src}
+        width={squareWidth}
+        height={squareWidth}
+        draggable={false}
+        alt=""
+    />;
+}, (prev, next) => (
+    prev.src == next.src
+    && prev.squareWidth == next.squareWidth
+));
 
 function getPieceType(piece: Piece) {
     return piece.at(1)?.toLowerCase() as PieceSymbol;
@@ -46,8 +68,11 @@ function Board({
     profileClassName,
     profileStyle,
     showPlayerClocks = true,
+    liveClockRealtime = false,
     whiteProfile,
     blackProfile,
+    whiteProfileUrl,
+    blackProfileUrl,
     theme,
     piecesDraggable = true,
     node = defaultRootNode,
@@ -59,17 +84,122 @@ function Board({
 }: BoardProps) {
     const squares = useSquares();
 
+    const nodeRef = useRef(node);
+
+    useEffect(() => {
+        nodeRef.current = node;
+    }, [node]);
+
     const squareRenderer = useMemo(() => (
-        createSquareRenderer(node, enableClassifications)
-    ), [node, enableClassifications]);
+        createSquareRenderer(nodeRef, enableClassifications)
+    ), [enableClassifications]);
 
     const [ heldPromotion, setHeldPromotion ] = useState<ClickMove>();
+
+    const customPieces = useMemo(() => {
+        if (!theme?.pieceSet && !theme?.preset) {
+            return undefined;
+        }
+
+        const basePath = theme?.preset
+            ? `/img/chessboards/presets/${theme.preset}`
+            : `/img/pieces/chessglyphs/${theme?.pieceSet}`;
+
+        const pieceElementCache: PieceElementCache = new Map();
+
+        const renderPiece = (colour: "w" | "b", piece: string) => {
+            const src = `${basePath}/${colour}${piece}.png`;
+
+            return (props: { squareWidth: number }) => {
+                const cacheKey = `${src}:${props.squareWidth}`;
+                const cachedElement = pieceElementCache.get(cacheKey);
+
+                if (cachedElement) {
+                    return cachedElement;
+                }
+
+                const element = <PieceImage
+                    src={src}
+                    squareWidth={props.squareWidth}
+                />;
+
+                pieceElementCache.set(cacheKey, element);
+
+                return element;
+            };
+        };
+
+        return {
+            wP: renderPiece("w", "p"),
+            wR: renderPiece("w", "r"),
+            wN: renderPiece("w", "n"),
+            wB: renderPiece("w", "b"),
+            wQ: renderPiece("w", "q"),
+            wK: renderPiece("w", "k"),
+            bP: renderPiece("b", "p"),
+            bR: renderPiece("b", "r"),
+            bN: renderPiece("b", "n"),
+            bB: renderPiece("b", "b"),
+            bQ: renderPiece("b", "q"),
+            bK: renderPiece("b", "k")
+        };
+    }, [theme?.pieceSet, theme?.preset]);
+
+    const boardTexturePath = useMemo(() => {
+        if (theme?.preset) {
+            return `/img/chessboards/presets/${theme.preset}/board.png`;
+        }
+
+        if (theme?.boardTexture) {
+            return `/img/chessboards/boards/${theme.boardTexture}.png`;
+        }
+
+        return undefined;
+    }, [theme?.preset, theme?.boardTexture]);
+
+    const customLightSquareStyle = useMemo(() => {
+        if (boardTexturePath) {
+            return {
+                backgroundColor: "transparent"
+            };
+        }
+
+        return {
+            backgroundColor: theme?.lightSquareColour || "#f0d9b5"
+        };
+    }, [boardTexturePath, theme?.lightSquareColour]);
+
+    const customDarkSquareStyle = useMemo(() => {
+        if (boardTexturePath) {
+            return {
+                backgroundColor: "transparent"
+            };
+        }
+
+        return {
+            backgroundColor: theme?.darkSquareColour || "#b58863"
+        };
+    }, [boardTexturePath, theme?.darkSquareColour]);
+
+    const customBoardStyle = useMemo(() => {
+        if (!boardTexturePath) {
+            return undefined;
+        }
+
+        return {
+            backgroundImage: `url('${boardTexturePath}')`,
+            backgroundSize: "cover",
+            backgroundPosition: "center"
+        };
+    }, [boardTexturePath]);
 
     const boardContainerRef = useRef<HTMLDivElement | null>(null);
     const { fullWidth: boardWidth } = useResizeObserver(boardContainerRef, 1);
 
     const topProfile = flipped ? whiteProfile : blackProfile;
     const bottomProfile = flipped ? blackProfile : whiteProfile;
+    const topProfileUrl = flipped ? whiteProfileUrl : blackProfileUrl;
+    const bottomProfileUrl = flipped ? blackProfileUrl : whiteProfileUrl;
     const topProfileColour = flipped ? PieceColour.WHITE : PieceColour.BLACK;
     const bottomProfileColour = flipped ? PieceColour.BLACK : PieceColour.WHITE;
     const boardClock = node.state.clock;
@@ -144,11 +274,13 @@ function Board({
         >
             <PlayerProfile
                 profile={topProfile}
+                profileUrl={topProfileUrl}
                 playerColour={topProfileColour}
                 currentFen={node.state.fen}
                 showClock={showPlayerClocks}
                 clockTimeMs={getClockTimeMs(boardClock, topProfileColour)}
                 clockActive={activeMoveColour == topProfileColour}
+                clockRealtime={liveClockRealtime}
             />
         </div>}
 
@@ -178,19 +310,15 @@ function Board({
                     onPromotionPieceSelect={onPromotionPieceSelect}
                     customSquare={squareRenderer}
                     customArrows={arrows}
+                    customBoardStyle={customBoardStyle}
+                    customLightSquareStyle={customLightSquareStyle}
+                    customDarkSquareStyle={customDarkSquareStyle}
                     arePiecesDraggable={piecesDraggable}
+                    customPieces={customPieces}
                     boardWidth={Math.max(
                         320,
                         boardWidth - (evaluation ? 22 : 0)
                     )}
-                    customLightSquareStyle={theme?.lightSquareColour
-                        ? { backgroundColor: theme.lightSquareColour }
-                        : undefined
-                    }
-                    customDarkSquareStyle={theme?.darkSquareColour
-                        ? { backgroundColor: theme.darkSquareColour }
-                        : undefined
-                    }
                     animationDuration={165}
                     showPromotionDialog={!!heldPromotion}
                     promotionToSquare={heldPromotion?.to}
@@ -205,11 +333,13 @@ function Board({
         >
             <PlayerProfile
                 profile={bottomProfile}
+                profileUrl={bottomProfileUrl}
                 playerColour={bottomProfileColour}
                 currentFen={node.state.fen}
                 showClock={showPlayerClocks}
                 clockTimeMs={getClockTimeMs(boardClock, bottomProfileColour)}
                 clockActive={activeMoveColour == bottomProfileColour}
+                clockRealtime={liveClockRealtime}
             />
         </div>}
     </div>;

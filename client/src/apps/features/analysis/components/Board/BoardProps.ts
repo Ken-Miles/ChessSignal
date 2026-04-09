@@ -12,8 +12,11 @@ interface BoardProps {
     profileClassName?: string;
     profileStyle?: CSSProperties;
     showPlayerClocks?: boolean;
+    liveClockRealtime?: boolean;
     whiteProfile?: PlayerProfile;
     blackProfile?: PlayerProfile;
+    whiteProfileUrl?: string;
+    blackProfileUrl?: string;
     node?: StateTreeNode;
     flipped?: boolean;
     evaluation?: Evaluation;
@@ -21,7 +24,9 @@ interface BoardProps {
     theme?: {
         lightSquareColour?: string;
         darkSquareColour?: string;
+        boardTexture?: string;
         pieceSet?: string;
+        preset?: string;
     };
     piecesDraggable?: boolean;
     enableClassifications?: boolean;

@@ -3,6 +3,7 @@ import React, {
     ReactNode,
     useContext,
     useEffect,
+    MutableRefObject,
     forwardRef,
     isValidElement
 } from "react";
@@ -36,12 +37,13 @@ function getSquareElements(children: ReactNode) {
 }
 
 function createSquareRenderer(
-    node: StateTreeNode,
+    nodeRef: MutableRefObject<StateTreeNode>,
     enableClassifications: boolean
 ) {
     return forwardRef<HTMLDivElement, CustomSquareProps>((
         { children, style, square }, ref
     ) => {
+        const node = nodeRef.current;
         const squares = useContext(SquaresContext);
 
         useEffect(() => {
