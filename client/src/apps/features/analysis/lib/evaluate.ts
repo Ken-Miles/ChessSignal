@@ -7,6 +7,8 @@ import { getTopEngineLine } from "shared/types/game/position/EngineLine";
 import Engine from "@analysis/lib/engine";
 import getCloudEvaluation from "./cloudEvaluate";
 
+const MAX_CLOUD_EVAL_PLIES = 10;
+
 interface EvaluateMovesOptions {
     engineVersion: EngineVersion;
     maxEngineCount?: number;
@@ -30,6 +32,10 @@ function createGameEvaluator(
     const controller = new AbortController();
 
     const stateTreeNodes = getNodeChain(game.stateTree);
+    const evaluationTargetIndexes = stateTreeNodes
+        .map((node, index) => ({ node, index }))
+        .filter(({ node }) => node.state.engineLines.length == 0)
+        .map(({ index }) => index);
 
     // Each state tree node keeps a progress from 0 to 1
     const progresses: number[] = [];
@@ -40,16 +46,30 @@ function createGameEvaluator(
 
     async function evaluator(): Promise<StateTreeNode[]> {
         // Apply cloud evaluations where possible
-        for (const stateTreeNode of stateTreeNodes) {
+        for (const [index, stateTreeNode] of stateTreeNodes.entries()) {
             if (controller.signal.aborted) break;
 
-            try {
-                var cloudEngineLines = await getCloudEvaluation(
-                    stateTreeNode.state.fen, options.cloudEngineLines
-                );
-            } catch {
-                break;
+            if (!evaluationTargetIndexes.includes(index)) {
+                progresses[index] = 1;
+                options.onProgress?.(getProgress());
+                continue;
             }
+
+            // Keep cloud calls focused to early positions (about first 5 moves).
+            if (index > MAX_CLOUD_EVAL_PLIES) {
+                continue;
+            }
+
+            const cloudEvaluationResult = await getCloudEvaluation(
+                stateTreeNode.state.fen,
+                options.cloudEngineLines
+            );
+
+            if (cloudEvaluationResult == null) {
+                continue;
+            }
+
+            let cloudEngineLines = cloudEvaluationResult;
 
             if (options.engineDepth != undefined) {
                 const targetDepth = options.engineDepth;
@@ -61,48 +81,54 @@ function createGameEvaluator(
             }
 
             const topCloudLine = getTopEngineLine(cloudEngineLines);
-            if (!topCloudLine) break;
+            if (!topCloudLine) {
+                continue;
+            }
 
             if (
                 options.engineDepth != undefined
                 && topCloudLine.depth < options.engineDepth
-            ) break;
-            if (cloudEngineLines.length < options.cloudEngineLines) break;
+            ) {
+                continue;
+            }
+
+            if (cloudEngineLines.length < options.cloudEngineLines) {
+                continue;
+            }
 
             stateTreeNode.state.engineLines = [
                 ...stateTreeNode.state.engineLines,
                 ...cloudEngineLines
             ];
 
-            progresses.push(1);
+            progresses[index] = 1;
             options.onProgress?.(getProgress());
         }
 
         // Locally evaluate remaining positions
 
-        // Maximum engine count or however many are needed for each
-        // remaining position, add 1 for cutoff for last cloud evaluated state
-        const evaluatedStateCount = stateTreeNodes.filter(
-            node => node.state.engineLines.some(
-                line => line.source == EngineVersion.LICHESS_CLOUD
-            )
-        ).length;
+        const localEvaluationIndexes = evaluationTargetIndexes.filter(
+            index => stateTreeNodes[index].state.engineLines.length == 0
+        );
+
+        if (localEvaluationIndexes.length == 0) {
+            return stateTreeNodes;
+        }
 
         const engineCount = Math.min(
             options.maxEngineCount || 1,
-            (stateTreeNodes.length - evaluatedStateCount) + 1
+            localEvaluationIndexes.length
         );
 
         let enginesResting = 0;
-        let stateTreeNodeIndex = Math.max(evaluatedStateCount - 1, 0);
+        let localEvaluationCursor = 0;
 
         return await new Promise((res, rej) => {
             // Bring an engine to a new FEN
             function evaluateNextPosition(engine: Engine) {
-                const currentStateTreeNodeIndex = stateTreeNodeIndex;
-                const currentStateTreeNode = stateTreeNodes[stateTreeNodeIndex];
+                const currentStateTreeNodeIndex = localEvaluationIndexes[localEvaluationCursor];
 
-                if (stateTreeNodeIndex >= stateTreeNodes.length) {
+                if (currentStateTreeNodeIndex == undefined) {
                     engine.terminate();
 
                     if (++enginesResting == engineCount)
@@ -111,8 +137,10 @@ function createGameEvaluator(
                     return;
                 }
 
+                const currentStateTreeNode = stateTreeNodes[currentStateTreeNodeIndex];
+
                 engine.setPosition(game.initialPosition, stateTreeNodes
-                    .slice(0, stateTreeNodeIndex + 1)
+                    .slice(0, currentStateTreeNodeIndex + 1)
                     .filter(node => node.state.move)
                     .map(node => node.state.move!.uci)
                 );
@@ -150,7 +178,7 @@ function createGameEvaluator(
                     evaluateNextPosition(engine);
                 });
 
-                stateTreeNodeIndex++;
+                localEvaluationCursor++;
             }
 
             // Start engines on first positions
