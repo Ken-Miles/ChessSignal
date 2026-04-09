@@ -126,6 +126,10 @@ export interface ChessComLiveGamePollResult {
     canonicalGameUrl?: string;
 }
 
+export function isChessComProxyUnavailableStatus(status?: number) {
+    return status == StatusCodes.BAD_GATEWAY;
+}
+
 function parseChessComMoveTimestamps(
     game: ChessComCallbackGameResponse["game"]
 ) {
@@ -509,9 +513,15 @@ function buildChessComLiveGame(payload: ChessComLiveEndpointResponse): ChessComL
 export async function pollChessComLiveGame(
     liveGameId: string
 ): Promise<APIResponse<ChessComLiveGamePollResult>> {
-    const response = await fetch(
-        `/api/public/chess-com/live/game/${encodeURIComponent(liveGameId)}`
-    );
+    let response: Response;
+
+    try {
+        response = await fetch(
+            `/api/public/chess-com/live/game/${encodeURIComponent(liveGameId)}`
+        );
+    } catch {
+        return { status: StatusCodes.BAD_GATEWAY };
+    }
 
     if (!response.ok) {
         return { status: response.status };
@@ -536,9 +546,15 @@ async function fetchChessComCallbackGame(
     gameType: ChessComGameType,
     gameId: string
 ): APIResponse<{ game: Game }> {
-    const response = await fetch(
-        `/api/public/chess-com/callback/${gameType}/game/${gameId}`
-    );
+    let response: Response;
+
+    try {
+        response = await fetch(
+            `/api/public/chess-com/callback/${gameType}/game/${gameId}`
+        );
+    } catch {
+        return { status: StatusCodes.BAD_GATEWAY };
+    }
 
     if (!response.ok) {
         return { status: response.status };
@@ -609,6 +625,10 @@ export async function getChessComGame(input: string): APIResponse<{ game: Game }
             };
         }
 
+        if (isChessComProxyUnavailableStatus(liveGame.status)) {
+            return { status: StatusCodes.BAD_GATEWAY };
+        }
+
         return await fetchChessComCallbackGame("live", parsedSelection.gameId);
     }
 
@@ -618,6 +638,7 @@ export async function getChessComGame(input: string): APIResponse<{ game: Game }
 
     const liveGame = await fetchChessComCallbackGame("live", parsedSelection.gameId);
     if (liveGame.status == StatusCodes.OK) return liveGame;
+    if (isChessComProxyUnavailableStatus(liveGame.status)) return liveGame;
 
     return await fetchChessComCallbackGame("daily", parsedSelection.gameId);
 }

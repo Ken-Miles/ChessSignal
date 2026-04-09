@@ -22,6 +22,7 @@ import parseStateTree from "shared/lib/stateTree/parse";
 import {
     buildChessComGameUrl,
     getChessComGame,
+    isChessComProxyUnavailableStatus,
     pollChessComLiveGame
 } from "@/lib/games/chessCom";
 import useEvaluateGame from "./useEvaluateGame";
@@ -387,6 +388,11 @@ function useGameLoader() {
             const liveGameResponse = await pollChessComLiveGame(livePollingGameId);
 
             if (cancelled) return;
+
+            if (isChessComProxyUnavailableStatus(liveGameResponse.status)) {
+                stopPolling();
+                return;
+            }
 
             if (liveGameResponse.status != 200 || !liveGameResponse.game) {
                 if (![404, 410].includes(liveGameResponse.status || 0)) {

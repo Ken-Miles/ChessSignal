@@ -32,9 +32,9 @@ router.get("/news*", appRouter({
     bundleName: "news",
     meta: {
         title: "ChessTracker News",
-        description: "The latest news on the ChessTracker platform.",
+        description: "The latest news on ChessTracker.",
         ogTitle: "♟️ ChessTracker - News",
-        ogDescription: "Read the latest news on the ChessTracker platform.",
+        ogDescription: "Read the latest news on ChessTracker.",
         ogUrl: "https://chesstracker.aidenpearce.space/news"
     }
 }));

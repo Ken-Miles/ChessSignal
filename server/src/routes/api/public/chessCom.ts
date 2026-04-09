@@ -15,16 +15,21 @@ interface ChessComLiveGameMetaResponse {
 }
 
 const router = Router();
-
-const blockedRequestHeaders = new Set([
-    "host",
-    "connection",
-    "content-length",
-    "transfer-encoding",
-    "te",
-    "trailer",
-    "upgrade",
-    "proxy-connection"
+const CHESS_COM_TIMEOUT_MS = 10_000;
+const allowedForwardRequestHeaders = new Set([
+    "accept",
+    "accept-language",
+    "user-agent",
+    "if-none-match",
+    "if-modified-since",
+    "cache-control",
+    "pragma"
+]);
+const chessComGameTypes = new Set<ChessComGameType>([
+    "live",
+    "daily",
+    "computer",
+    "master"
 ]);
 
 function getForwardHeaders(headers: Record<string, string | string[] | undefined>) {
@@ -33,7 +38,7 @@ function getForwardHeaders(headers: Record<string, string | string[] | undefined
     for (const [key, value] of Object.entries(headers)) {
         const normalisedKey = key.toLowerCase();
 
-        if (blockedRequestHeaders.has(normalisedKey)) continue;
+        if (!allowedForwardRequestHeaders.has(normalisedKey)) continue;
         if (value == undefined) continue;
 
         forwarded[normalisedKey] = Array.isArray(value)
@@ -58,22 +63,34 @@ function getChessComAbsoluteUrl(pathOrUrl: string) {
     }
 }
 
+async function fetchWithTimeout(url: string, headers: Record<string, string>) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), CHESS_COM_TIMEOUT_MS);
+
+    try {
+        return await fetch(url, {
+            headers,
+            signal: controller.signal
+        });
+    } finally {
+        clearTimeout(timeoutId);
+    }
+}
+
 router.get("/chess-com/callback/:gameType/game/:gameId", async (req, res) => {
     const gameType = req.params.gameType as ChessComGameType;
     const gameId = req.params.gameId;
 
-    if (!gameType || !gameId) {
+    if (!gameType || !gameId || !chessComGameTypes.has(gameType)) {
         return res.sendStatus(StatusCodes.BAD_REQUEST);
     }
 
     try {
         const forwardHeaders = getForwardHeaders(req.headers);
 
-        const response = await fetch(
+        const response = await fetchWithTimeout(
             `https://www.chess.com/callback/${gameType}/game/${gameId}`,
-            {
-                headers: forwardHeaders
-            }
+            forwardHeaders
         );
 
         const body = await response.text();
@@ -101,11 +118,9 @@ router.get("/chess-com/live/game/:liveGameId", async (req, res) => {
     try {
         const forwardHeaders = getForwardHeaders(req.headers);
 
-        const metadataResponse = await fetch(
+        const metadataResponse = await fetchWithTimeout(
             `https://www.chess.com/service/play/games/${liveGameId}`,
-            {
-                headers: forwardHeaders
-            }
+            forwardHeaders
         );
 
         if (!metadataResponse.ok) {
@@ -124,9 +139,7 @@ router.get("/chess-com/live/game/:liveGameId", async (req, res) => {
             return res.sendStatus(StatusCodes.BAD_REQUEST);
         }
 
-        const stateResponse = await fetch(transportUrl, {
-            headers: forwardHeaders
-        });
+        const stateResponse = await fetchWithTimeout(transportUrl, forwardHeaders);
 
         if (!stateResponse.ok) {
             return res.sendStatus(stateResponse.status);
