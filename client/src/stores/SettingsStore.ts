@@ -32,9 +32,12 @@ const settingsSchema = z.object({
     themes: z.object({
         board: z.object({
             darkSquareColour: z.string().regex(/^#.{6}$/),
-            lightSquareColour: z.string().regex(/^#.{6}$/)
+            lightSquareColour: z.string().regex(/^#.{6}$/),
+            texture: z.string().optional()
         }),
-        piece: z.string()
+        piece: z.string(),
+        preset: z.string().optional(),
+        appBackground: z.string().optional()
     }),
     bugReportingMode: z.boolean()
 });
@@ -76,9 +79,12 @@ export const defaultSettings: Settings = {
     themes: {
         board: {
             darkSquareColour: "#b58863",
-            lightSquareColour: "#f0d9b5"
+            lightSquareColour: "#f0d9b5",
+            texture: ""
         },
-        piece: ""
+        piece: "",
+        preset: "",
+        appBackground: ""
     },
     bugReportingMode: false
 };
