@@ -9,7 +9,7 @@
     },
     "news": {
         "title": "Newspaper",
-        "titleDescription": "Get the latest updates on the ChessTracker platform",
+        "titleDescription": "Get the latest updates on ChessTracker",
         "error": "There was an error while loading the newspaper.",
         "article": {
             "unfound": "We couldn't find this article.",
