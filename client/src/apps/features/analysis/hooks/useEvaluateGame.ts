@@ -32,7 +32,10 @@ function useEvaluateGame() {
 
     async function evaluateGame(analysisGame: AnalysedGame) {
         setAnalysisStatus(AnalysisStatus.EVALUATING);
-        setActiveTab(AnalysisTab.REPORT);
+
+        if (!analysisGame.source?.chessCom?.isLiveOngoing) {
+            setActiveTab(AnalysisTab.REPORT);
+        }
 
         const evaluator = createGameEvaluator(analysisGame, {
             engineVersion: settings.version,

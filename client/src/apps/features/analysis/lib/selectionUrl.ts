@@ -38,13 +38,18 @@ export function getAnalysisSelectionFromUrl(searchParams: URLSearchParams) {
         ? buildChessComGameUrl(chessComGameType, chessComGameId)
         : undefined;
 
-    const sourceKey = getGameSource(
+    const resolvedSourceKey = (
         sourceKeyFromUrl
+        || (parseChessComGameSelection(gameInput)?.gameType == "live"
+            ? GameSource.CHESS_COM_LIVE.key
+            : undefined)
         || (parseChessComGameSelection(gameInput)
             ? GameSource.CHESS_COM.key
             : undefined)
         || (chessComGameId
-            ? GameSource.CHESS_COM.key
+            ? (chessComGameType == "live"
+                ? GameSource.CHESS_COM_LIVE.key
+                : GameSource.CHESS_COM.key)
             : undefined)
         || (searchParams.get(analysisSelectionUrlKeys.lichessUsername)
             ? GameSource.LICHESS.key
@@ -55,7 +60,10 @@ export function getAnalysisSelectionFromUrl(searchParams: URLSearchParams) {
         || (searchParams.get(analysisSelectionUrlKeys.pgn)
             ? GameSource.PGN.key
             : undefined)
-    ).key as GameSourceType;
+        || GameSource.PGN.key
+    );
+
+    const sourceKey = getGameSource(resolvedSourceKey).key as GameSourceType;
 
     const input = gameInput
         || chessComGameUrl
@@ -117,7 +125,7 @@ export function updateAnalysisSelectionUrl(
         return nextSearchParams;
     }
 
-    if (input.sourceKey == GameSource.CHESS_COM.key) {
+    if (input.sourceKey == GameSource.CHESS_COM.key || input.sourceKey == GameSource.CHESS_COM_LIVE.key) {
         const parsedGame = parseChessComGameSelection(input.fieldInput);
         const canonicalGameUrl = parsedGame?.gameUrl || input.fieldInput;
 
@@ -131,6 +139,11 @@ export function updateAnalysisSelectionUrl(
                 nextSearchParams.set(
                     analysisSelectionUrlKeys.chessComGameType,
                     parsedGame.gameType
+                );
+            } else if (input.sourceKey == GameSource.CHESS_COM_LIVE.key) {
+                nextSearchParams.set(
+                    analysisSelectionUrlKeys.chessComGameType,
+                    "live"
                 );
             }
 

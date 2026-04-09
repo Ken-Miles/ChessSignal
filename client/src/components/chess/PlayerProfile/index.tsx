@@ -87,43 +87,75 @@ function formatClockTime(clockTimeMs?: number, showTenths = false) {
 
 function PlayerProfile({
     profile,
+    profileUrl,
     playerColour,
     currentFen,
     showClock = true,
     clockTimeMs,
-    clockActive = false
+    clockActive = false,
+    clockRealtime = false
 }: PlayerProfileProps) {
     const [ defaultImage, setDefaultImage ] = useState(false);
+    const [ liveClockDisplayMs, setLiveClockDisplayMs ] = useState<number | undefined>(clockTimeMs);
     const initialClockTimeMsRef = useRef<number>();
-    const isLowTimeValue = clockTimeMs != undefined
-        && !Number.isNaN(clockTimeMs)
-        && clockTimeMs < 20000;
+    const displayedClockMs = liveClockDisplayMs;
+    const isLowTimeValue = displayedClockMs != undefined
+        && !Number.isNaN(displayedClockMs)
+        && displayedClockMs < 20000;
     const isLowTime = clockActive
-        && clockTimeMs != undefined
-        && !Number.isNaN(clockTimeMs)
-        && clockTimeMs < 20000;
+        && displayedClockMs != undefined
+        && !Number.isNaN(displayedClockMs)
+        && displayedClockMs < 20000;
 
     useEffect(() => {
+        setLiveClockDisplayMs(clockTimeMs);
+    }, [clockTimeMs]);
+
+    useEffect(() => {
+        if (!clockRealtime || !clockActive) {
+            return;
+        }
+
         if (clockTimeMs == undefined || Number.isNaN(clockTimeMs)) {
             return;
         }
 
-        if (initialClockTimeMsRef.current == undefined || clockTimeMs > initialClockTimeMsRef.current) {
-            initialClockTimeMsRef.current = clockTimeMs;
+        const startedAt = Date.now();
+        const baselineMs = clockTimeMs;
+
+        const intervalId = window.setInterval(() => {
+            const elapsedMs = Date.now() - startedAt;
+            const remainingMs = Math.max(0, baselineMs - elapsedMs);
+
+            setLiveClockDisplayMs(remainingMs);
+        }, 100);
+
+        return () => {
+            window.clearInterval(intervalId);
+        };
+    }, [clockRealtime, clockActive, clockTimeMs]);
+
+    useEffect(() => {
+        if (displayedClockMs == undefined || Number.isNaN(displayedClockMs)) {
+            return;
         }
-    }, [clockTimeMs]);
+
+        if (initialClockTimeMsRef.current == undefined || displayedClockMs > initialClockTimeMsRef.current) {
+            initialClockTimeMsRef.current = displayedClockMs;
+        }
+    }, [displayedClockMs]);
 
     const clockRotationDeg = useMemo(() => {
-        if (clockTimeMs == undefined || Number.isNaN(clockTimeMs) || initialClockTimeMsRef.current == undefined) {
+        if (displayedClockMs == undefined || Number.isNaN(displayedClockMs) || initialClockTimeMsRef.current == undefined) {
             return 0;
         }
 
-        const elapsedMs = Math.max(0, initialClockTimeMsRef.current - clockTimeMs);
+        const elapsedMs = Math.max(0, initialClockTimeMsRef.current - displayedClockMs);
 
         const MILLISECONDS_PER_TICK = 1000;
         const steps = Math.floor(elapsedMs / MILLISECONDS_PER_TICK);
         return steps * 90;
-    }, [clockTimeMs]);
+    }, [displayedClockMs]);
 
     const capturedState = useMemo(() => {
         if (!playerColour || !currentFen) {
@@ -194,9 +226,19 @@ function PlayerProfile({
                         {profile.title}
                     </span>}
 
-                    <span className={`${styles.username} cc-text-medium-bold cc-user-username-component cc-user-username-white cc-user-block-username`}>
-                        {profile.username || "?"}
-                    </span>
+                    {profileUrl
+                        ? <a
+                            href={profileUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className={`${styles.username} ${styles.usernameLink} cc-text-medium-bold cc-user-username-component cc-user-username-white cc-user-block-username`}
+                        >
+                            {profile.username || "?"}
+                        </a>
+                        : <span className={`${styles.username} cc-text-medium-bold cc-user-username-component cc-user-username-white cc-user-block-username`}>
+                            {profile.username || "?"}
+                        </span>
+                    }
 
                     {profile.rating != undefined
                         && <span className={`${styles.rating} cc-text-medium cc-user-rating-white`}>
@@ -220,7 +262,7 @@ function PlayerProfile({
         </div>
 
         {showClock && <div
-            className={`${styles.clock} ${clockActive ? styles.clockActive : styles.clockInactive} ${playerColour == PieceColour.WHITE ? styles.clockWhite : styles.clockBlack} ${isLowTime ? styles.clockLowTime : ""}`}
+            className={`${styles.clock} ${clockActive ? styles.clockActive : styles.clockInactive} ${playerColour == PieceColour.WHITE ? styles.clockWhite : styles.clockBlack} ${clockActive && playerColour == PieceColour.BLACK ? styles.clockBlackActive : ""} ${isLowTime ? styles.clockLowTime : ""}`}
         >
             <span className={styles.clockIcon}>
                 <svg
@@ -235,7 +277,7 @@ function PlayerProfile({
                 </svg>
             </span>
 
-            <span className={styles.clockTime}>{formatClockTime(clockTimeMs, isLowTimeValue)}</span>
+            <span className={styles.clockTime}>{formatClockTime(displayedClockMs, isLowTimeValue)}</span>
         </div>}
     </div>;
 }

@@ -12,6 +12,7 @@ function parseStateTree(game: Game) {
     const parsedPGN = parseGame(game.pgn);
     const chessComClockBaseMs = game.source?.chessCom?.clockBaseMs;
     const chessComMoveTimestampsMs = game.source?.chessCom?.moveTimestampsMs || [];
+    const chessComLiveCurrentClocksMs = game.source?.chessCom?.liveCurrentClocksMs;
 
     function cloneClock(clock?: { whiteMs?: number; blackMs?: number }) {
         if (!clock) return undefined;
@@ -99,6 +100,19 @@ function parseStateTree(game: Game) {
     };
 
     addMovesToNode(rootNode, parsedPGN.moves, true, rootNode.state.clock);
+
+    if (chessComLiveCurrentClocksMs) {
+        let latestNode = rootNode;
+
+        while (latestNode.children[0]) {
+            latestNode = latestNode.children[0];
+        }
+
+        latestNode.state.clock = {
+            whiteMs: chessComLiveCurrentClocksMs.whiteMs,
+            blackMs: chessComLiveCurrentClocksMs.blackMs
+        };
+    }
 
     return rootNode;
 }

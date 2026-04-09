@@ -84,6 +84,48 @@ interface ChessComCallbackGameResponse {
     };
 }
 
+interface ChessComLivePlayerDetails {
+    username?: string;
+    rating?: number;
+    avatarUrl?: string;
+}
+
+interface ChessComLiveMetadataResponse {
+    id: string;
+    legacyId?: number;
+    variant?: string;
+    timeclass?: string;
+    timeControl?: {
+        base?: string;
+        increment?: string;
+    };
+    playersDetails?: ChessComLivePlayerDetails[];
+    startedAt?: string;
+    updatedAt?: string;
+}
+
+interface ChessComLiveStateResponse {
+    id?: string;
+    clocks?: number[];
+    moves?: Array<[string, number]>;
+    playersScores?: Array<{ points?: number }>;
+    startedAt?: string;
+    updatedAt?: string;
+    finishedAt?: string;
+}
+
+interface ChessComLiveEndpointResponse {
+    metadata?: ChessComLiveMetadataResponse;
+    state?: ChessComLiveStateResponse;
+}
+
+export interface ChessComLiveGamePollResult {
+    liveStatus: "live" | "finished";
+    game: Game;
+    legacyGameId?: string;
+    canonicalGameUrl?: string;
+}
+
 function parseChessComMoveTimestamps(
     game: ChessComCallbackGameResponse["game"]
 ) {
@@ -130,6 +172,20 @@ function buildChessComGameUrl(gameType: ChessComGameType, gameId: string) {
     return `https://www.chess.com/game/${gameType}/${gameId}`;
 }
 
+function parseIsoDurationMilliseconds(duration?: string) {
+    if (!duration) return;
+
+    const match = duration.match(/^PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?$/i);
+    if (!match) return;
+
+    const [, hoursRaw, minutesRaw, secondsRaw] = match;
+    const hours = Number(hoursRaw || 0);
+    const minutes = Number(minutesRaw || 0);
+    const seconds = Number(secondsRaw || 0);
+
+    return ((hours * 60 * 60) + (minutes * 60) + seconds) * 1000;
+}
+
 export { buildChessComGameUrl };
 
 export function parseChessComGameSelection(input: string): ChessComGameSelection | undefined {
@@ -141,13 +197,21 @@ export function parseChessComGameSelection(input: string): ChessComGameSelection
         return { gameId: trimmedInput };
     }
 
+    if (/^[a-f0-9-]{32,}$/i.test(trimmedInput)) {
+        return {
+            gameType: "live",
+            gameId: trimmedInput,
+            gameUrl: buildChessComGameUrl("live", trimmedInput)
+        };
+    }
+
     const url = normaliseChessComUrl(trimmedInput);
     if (!url) return;
 
     const path = url.pathname.replace(/^\/+/, "");
 
     const liveDailyAnalysisMatch = path.match(
-        /^(?:analysis\/)?game\/(live|daily|computer|master)\/(\d+)(?:\/(?:review|analysis))?$/
+        /^(?:analysis\/)?game\/(live|daily|computer|master)\/([a-zA-Z0-9-]+)(?:\/(?:review|analysis))?$/
     );
 
     if (liveDailyAnalysisMatch) {
@@ -160,7 +224,7 @@ export function parseChessComGameSelection(input: string): ChessComGameSelection
         };
     }
 
-    const bareGameMatch = path.match(/^game\/(\d+)(?:\/.*)?$/);
+    const bareGameMatch = path.match(/^game\/([a-zA-Z0-9-]+)(?:\/.*)?$/);
     if (bareGameMatch) {
         return {
             gameType: "live",
@@ -169,7 +233,7 @@ export function parseChessComGameSelection(input: string): ChessComGameSelection
         };
     }
 
-    const liveGameMatch = path.match(/^(live|daily|computer|master)\/game\/(\d+)(?:\/.*)?$/);
+    const liveGameMatch = path.match(/^(live|daily|computer|master)\/game\/([a-zA-Z0-9-]+)(?:\/.*)?$/);
     if (liveGameMatch) {
         const [, gameType, gameId] = liveGameMatch;
 
@@ -306,10 +370,172 @@ function buildChessComPgn(game: ChessComCallbackGameResponse["game"]) {
         : pgn;
 }
 
+function buildChessComPgnFromMoveList(moveList: string, initialPosition = STARTING_FEN) {
+    const board = new Chess(initialPosition);
+
+    for (const move of decodeChessComMoveList(moveList)) {
+        try {
+            board.move(move);
+        } catch {
+            break;
+        }
+    }
+
+    return board.pgn();
+}
+
+function getGameResultFromLiveScores(
+    liveStatus: "live" | "finished",
+    scores?: Array<{ points?: number }>
+) {
+    if (liveStatus == "live" || !scores || scores.length < 2) {
+        return {
+            white: GameResult.UNKNOWN,
+            black: GameResult.UNKNOWN
+        };
+    }
+
+    const whitePoints = scores[0]?.points || 0;
+    const blackPoints = scores[1]?.points || 0;
+
+    if (whitePoints > blackPoints) {
+        return {
+            white: GameResult.WIN,
+            black: GameResult.LOSE
+        };
+    }
+
+    if (blackPoints > whitePoints) {
+        return {
+            white: GameResult.LOSE,
+            black: GameResult.WIN
+        };
+    }
+
+    return {
+        white: GameResult.DRAW,
+        black: GameResult.DRAW
+    };
+}
+
+function buildChessComLiveGame(payload: ChessComLiveEndpointResponse): ChessComLiveGamePollResult | undefined {
+    const metadata = payload.metadata;
+    const state = payload.state;
+
+    if (!metadata || !state) {
+        return;
+    }
+
+    const liveGameId = metadata.id;
+    const legacyGameId = metadata.legacyId != undefined
+        ? `${metadata.legacyId}`
+        : undefined;
+    const moveEntries = state.moves || [];
+    const moveList = moveEntries
+        .map(([encodedMove]) => encodedMove)
+        .join("");
+    const moveTimestampsMs = moveEntries
+        .map(([, remainingMs]) => remainingMs)
+        .filter(remainingMs => !Number.isNaN(remainingMs));
+    const pgn = buildChessComPgnFromMoveList(moveList);
+    const board = new Chess();
+
+    for (const move of decodeChessComMoveList(moveList)) {
+        try {
+            board.move(move);
+        } catch {
+            break;
+        }
+    }
+
+    const scores = state.playersScores;
+    const liveStatus: "live" | "finished" = state.finishedAt
+        ? "finished"
+        : "live";
+    const results = getGameResultFromLiveScores(liveStatus, scores);
+    const canonicalGameUrl = legacyGameId
+        ? buildChessComGameUrl("live", legacyGameId)
+        : undefined;
+    const clockBaseMs = parseIsoDurationMilliseconds(metadata.timeControl?.base);
+    const whiteProfile = metadata.playersDetails?.[0] || {};
+    const blackProfile = metadata.playersDetails?.[1] || {};
+
+    return {
+        liveStatus,
+        legacyGameId,
+        canonicalGameUrl,
+        game: {
+            pgn,
+            variant: metadata.variant == "chess960"
+                ? Variant.CHESS960
+                : Variant.STANDARD,
+            timeControl: timeControlCodes[metadata.timeclass || ""] || TimeControl.CORRESPONDENCE,
+            initialPosition: STARTING_FEN,
+            source: {
+                chessCom: {
+                    gameId: legacyGameId || liveGameId,
+                    gameType: "live",
+                    gameUrl: canonicalGameUrl || buildChessComGameUrl("live", liveGameId),
+                    liveGameId,
+                    legacyGameId,
+                    isLiveOngoing: liveStatus == "live",
+                    liveCurrentClocksMs: {
+                        whiteMs: state.clocks?.[0],
+                        blackMs: state.clocks?.[1]
+                    },
+                    clockBaseMs: clockBaseMs || state.clocks?.[0],
+                    moveTimestampsMs
+                }
+            },
+            players: {
+                white: {
+                    username: whiteProfile.username || "White",
+                    rating: whiteProfile.rating,
+                    image: whiteProfile.avatarUrl,
+                    result: results.white
+                },
+                black: {
+                    username: blackProfile.username || "Black",
+                    rating: blackProfile.rating,
+                    image: blackProfile.avatarUrl,
+                    result: results.black
+                }
+            },
+            date: state.finishedAt || state.updatedAt || metadata.updatedAt || state.startedAt || metadata.startedAt
+        }
+    };
+}
+
+export async function pollChessComLiveGame(
+    liveGameId: string
+): Promise<APIResponse<ChessComLiveGamePollResult>> {
+    const response = await fetch(
+        `/api/public/chess-com/live/game/${encodeURIComponent(liveGameId)}`
+    );
+
+    if (!response.ok) {
+        return { status: response.status };
+    }
+
+    const payload = await response.json() as ChessComLiveEndpointResponse;
+    const liveGame = buildChessComLiveGame(payload);
+
+    if (!liveGame) {
+        return {
+            status: StatusCodes.BAD_GATEWAY
+        };
+    }
+
+    return {
+        status: StatusCodes.OK,
+        ...liveGame
+    };
+}
+
 async function fetchChessComCallbackGame(
     gameType: ChessComGameType,
     gameId: string
-): Promise<APIResponse<Game>> {
+): APIResponse<{ game: Game }> {
     const response = await fetch(
         `/api/public/chess-com/callback/${gameType}/game/${gameId}`
     );
@@ -337,6 +563,8 @@ async function fetchChessComCallbackGame(
                     gameId,
                     gameType,
                     gameUrl: buildChessComGameUrl(gameType, gameId),
+                    liveGameId: gameType == "live" ? gameId : undefined,
+                    isLiveOngoing: gameType == "live" && !game.isFinished,
                     clockBaseMs,
                     moveTimestampsMs
                 }
@@ -364,11 +592,24 @@ async function fetchChessComCallbackGame(
     };
 }
 
-export async function getChessComGame(input: string): Promise<APIResponse<Game>> {
+export async function getChessComGame(input: string): APIResponse<{ game: Game }> {
     const parsedSelection = parseChessComGameSelection(input);
 
     if (!parsedSelection) {
         return { status: StatusCodes.NOT_FOUND };
+    }
+
+    if (parsedSelection.gameType == "live") {
+        const liveGame = await pollChessComLiveGame(parsedSelection.gameId);
+
+        if (liveGame.status == StatusCodes.OK && liveGame.game) {
+            return {
+                status: StatusCodes.OK,
+                game: liveGame.game
+            };
+        }
+
+        return await fetchChessComCallbackGame("live", parsedSelection.gameId);
     }
 
     if (parsedSelection.gameType) {

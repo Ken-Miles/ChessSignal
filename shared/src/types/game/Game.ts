@@ -11,6 +11,13 @@ export interface GameSourceMetadata {
         gameId?: string;
         gameType?: string;
         gameUrl?: string;
+        liveGameId?: string;
+        legacyGameId?: string;
+        isLiveOngoing?: boolean;
+        liveCurrentClocksMs?: {
+            whiteMs?: number;
+            blackMs?: number;
+        };
         clockBaseMs?: number;
         moveTimestampsMs?: number[];
     };
@@ -34,7 +41,23 @@ export const gameSchema = z.object({
         white: gamePlayerProfileSchema,
         black: gamePlayerProfileSchema
     }),
-    date: z.iso.datetime().optional()
+    date: z.iso.datetime().optional(),
+    source: z.object({
+        chessCom: z.object({
+            gameId: z.string().optional(),
+            gameType: z.string().optional(),
+            gameUrl: z.string().optional(),
+            liveGameId: z.string().optional(),
+            legacyGameId: z.string().optional(),
+            isLiveOngoing: z.boolean().optional(),
+            liveCurrentClocksMs: z.object({
+                whiteMs: z.number().optional(),
+                blackMs: z.number().optional()
+            }).optional(),
+            clockBaseMs: z.number().optional(),
+            moveTimestampsMs: z.number().array().optional()
+        }).optional()
+    }).optional()
 });
 
 export type Game = z.infer<typeof gameSchema> & {

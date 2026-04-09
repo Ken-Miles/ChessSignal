@@ -20,11 +20,13 @@ function RealtimeEngineArea() {
 
     const {
         currentStateTreeNode,
-        currentEngineLines
+        currentEngineLines,
+        dispatchCurrentNodeUpdate
     } = useAnalysisBoardStore(
         useShallow(state => ({
             currentStateTreeNode: state.currentStateTreeNode,
-            currentEngineLines: state.currentStateTreeNode.state.engineLines
+            currentEngineLines: state.currentStateTreeNode.state.engineLines,
+            dispatchCurrentNodeUpdate: state.dispatchCurrentNodeUpdate
         }))
     );
 
@@ -62,6 +64,9 @@ function RealtimeEngineArea() {
                 currentStateTreeNode.state.engineLines.concat(lines),
                 isEngineLineEqual
             );
+
+            // Force graph/report consumers to reflect the updated node evaluation.
+            dispatchCurrentNodeUpdate();
 
             considerRealtimeAnalyse();
         }}

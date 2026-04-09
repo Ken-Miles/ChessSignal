@@ -33,6 +33,7 @@ const sourcePlaceholderKeys: Record<GameSourceType, string> = {
     PGN: "pgn",
     FEN: "fen",
     CHESS_COM: "chessCom",
+    CHESS_COM_LIVE: "chessComLive",
     LICHESS: "lichess"
 };
 
@@ -75,6 +76,7 @@ function GameSelector({
         setServiceGames
     ] = useState<Record<string, Game | null>>({
         [GameSource.CHESS_COM.key]: null,
+        [GameSource.CHESS_COM_LIVE.key]: null,
         [GameSource.LICHESS.key]: null
     });
 
@@ -152,6 +154,10 @@ function GameSelector({
             return onGameSelect?.(currentFieldInput);
         }
 
+        if (gameSource.key == GameSource.CHESS_COM_LIVE.key) {
+            return onGameSelect?.(currentFieldInput || null);
+        }
+
         if (gameSource.selectorButton == GameSelectorButton.SEARCH_GAMES) {
             return onGameSelect?.(serviceGames[gameSource.key]);
         }
@@ -180,6 +186,7 @@ function GameSelector({
     function openGameSearchMenu() {
         if (currentFieldInput.length == 0) return;
         if (gameSource.key == GameSource.CHESS_COM.key && isChessComGameUrl(currentFieldInput)) return;
+        if (gameSource.key == GameSource.CHESS_COM_LIVE.key) return;
 
         setSearchMenuOpen(true);
     }
@@ -295,7 +302,7 @@ function GameSelector({
                 if (syncUrlState) {
                     persistUrlSelection(
                         gameSource.key,
-                        gameSource.key == GameSource.CHESS_COM.key && game
+                        (gameSource.key == GameSource.CHESS_COM.key || gameSource.key == GameSource.CHESS_COM_LIVE.key) && game
                             ? getChessComSelectionInput(game)
                             : currentFieldInput,
                         usersColour == PieceColour.BLACK ? "black" : "white"

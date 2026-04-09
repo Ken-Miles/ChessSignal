@@ -75,3 +75,15 @@ export function setCachedLoadedGame(cacheKey: string, game: AnalysedGame) {
 
     writeCache(cache);
 }
+
+export function clearCachedLoadedGame(cacheKey: string) {
+    const cache = pruneCache(readCache());
+
+    if (!(cacheKey in cache)) {
+        return;
+    }
+
+    delete cache[cacheKey];
+
+    writeCache(cache);
+}

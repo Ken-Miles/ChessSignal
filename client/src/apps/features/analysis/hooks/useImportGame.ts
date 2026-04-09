@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import { useSearchParams } from "react-router-dom";
 
 import AnalysedGame from "shared/types/game/AnalysedGame";
 import { getColourPlayed } from "shared/types/game/Game";
@@ -14,12 +15,14 @@ import {
 } from "@/lib/profileImages";
 import {
     getChessComGame,
+    buildChessComGameUrl,
     parseChessComGameSelection
 } from "@/lib/games/chessCom";
 import getChessComGames from "@/lib/games/chessCom";
 import getLichessGames from "@/lib/games/lichess";
 import parsePgn from "@/lib/games/pgn";
 import parseFenString from "@/lib/games/fen";
+import { updateAnalysisSelectionUrl } from "@analysis/lib/selectionUrl";
 
 const messages = {
     fetchingLatest: "gameSelector.statusMessages.fetchingLatest",
@@ -29,6 +32,7 @@ const messages = {
 
 function useImportGame() {
     const { t } = useTranslation("analysis");
+    const [ searchParams, setSearchParams ] = useSearchParams();
 
     const {
         selectedGame,
@@ -68,7 +72,10 @@ function useImportGame() {
                     return parsePgn(selectedGame);
                 } else if (savedGameSource.key == GameSource.FEN.key) {
                     return parseFenString(selectedGame);
-                } else if (savedGameSource.key == GameSource.CHESS_COM.key) {
+                } else if (
+                    savedGameSource.key == GameSource.CHESS_COM.key
+                    || savedGameSource.key == GameSource.CHESS_COM_LIVE.key
+                ) {
                     return getChessComGame(selectedGame).then(response => {
                         if (response.status != 200 || !response.game) {
                             throw new Error(t(messages.invalidGame));
@@ -95,7 +102,10 @@ function useImportGame() {
 
         if (
             !importedGame
-            && savedGameSource.key == GameSource.CHESS_COM.key
+            && (
+                savedGameSource.key == GameSource.CHESS_COM.key
+                || savedGameSource.key == GameSource.CHESS_COM_LIVE.key
+            )
             && parseChessComGameSelection(savedCurrentFieldInput)
         ) {
             const callbackGame = await getChessComGame(savedCurrentFieldInput);
@@ -163,6 +173,28 @@ function useImportGame() {
         setAnalysisGame(analysisGame);
         setCurrentStateTreeNode(analysisGame.stateTree);
         setGameAnalysisOpen(true);
+
+        const chessComSource = importedGame.source?.chessCom;
+        const chessComSelectionInput = chessComSource?.gameUrl
+            || (chessComSource?.gameType && chessComSource?.gameId
+                ? buildChessComGameUrl(
+                    chessComSource.gameType as "live" | "daily" | "computer" | "master",
+                    chessComSource.gameId
+                )
+                : undefined);
+
+        const fieldInput = (
+            savedGameSource.key == GameSource.CHESS_COM.key
+            || savedGameSource.key == GameSource.CHESS_COM_LIVE.key
+        )
+            ? (chessComSelectionInput || (typeof selectedGame == "string" ? selectedGame : savedCurrentFieldInput))
+            : (typeof selectedGame == "string" ? selectedGame : savedCurrentFieldInput);
+
+        setSearchParams(updateAnalysisSelectionUrl(searchParams, {
+            sourceKey: savedGameSource.key,
+            fieldInput,
+            perspective: "auto"
+        }));
 
         // Load profile images from Chess.com if it is possible
         if (isGameFromChessCom(importedGame!)) {

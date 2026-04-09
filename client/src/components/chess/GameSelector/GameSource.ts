@@ -6,6 +6,7 @@ export enum GameSelectorButton {
 export type GameSourceType = "PGN"
     | "FEN"
     | "CHESS_COM"
+    | "CHESS_COM_LIVE"
     | "LICHESS";
 
 export interface GameSourceData {
@@ -32,6 +33,11 @@ export const GameSource: Record<GameSourceType, GameSourceData> = {
         title: "Chess.com",
         expandField: false,
         selectorButton: GameSelectorButton.SEARCH_GAMES
+    },
+    CHESS_COM_LIVE: {
+        key: "CHESS_COM_LIVE",
+        title: "Chess.com Live",
+        expandField: false
     },
     LICHESS: {
         key: "LICHESS",
