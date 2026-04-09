@@ -96,22 +96,22 @@ function ClassifiedMoveCard() {
         : undefined;
 
     const playedMove = getPlayedMove(node);
-    const playedMoveMessage = (
-        (settings.analysis.simpleNotation && playedMove
-            ? getSimpleNotation(playedMove)
-            : node.state.move?.san
-        )
-        + t(
-            "classifiedMoveCard.classifications."
-            + node.state.classification,
-            {
-                ns: "analysis",
-                defaultValue: node.state.classification == Classification.MISS
-                    ? "is a miss"
-                    : undefined
-            }
-        )
+    const playedMoveText = settings.analysis.simpleNotation && playedMove
+        ? getSimpleNotation(playedMove)
+        : node.state.move?.san;
+    const classificationText = t(
+        "classifiedMoveCard.classifications."
+        + node.state.classification,
+        {
+            ns: "analysis",
+            defaultValue: node.state.classification == Classification.MISS
+                ? "is a miss"
+                : undefined
+        }
     );
+    const playedMoveMessage = [playedMoveText, classificationText]
+        .filter(Boolean)
+        .join(" ");
 
     const topAlternativeMove = getTopAlternativeMove(node);
 
