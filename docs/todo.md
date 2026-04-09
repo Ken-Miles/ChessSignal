@@ -65,10 +65,10 @@
 ## Milestone 3: API foundations and caching
 
 ### API revamp
-- [ ] Add API versioning
-- [ ] Define public vs internal route layout (example: `/v1/public/*`, `/v1/internal/*`)
-- [ ] Document internal endpoints for maintainers
-- [ ] Publish public API docs for external developers
+- [x] Add API versioning
+- [x] Define public vs internal route layout (example: `/v1/public/*`, `/v1/internal/*`)
+- [x] Document internal endpoints for maintainers
+- [x] Publish public API docs for external developers
 
 ### API hardening and developer support
 - [ ] Explore API key support for selected endpoints
