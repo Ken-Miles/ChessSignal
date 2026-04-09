@@ -10,7 +10,7 @@ router.get("/analysis", appRouter({
     meta: {
         title: "Game Analysis",
         description: "Analyse your Chess games, free of charge.",
-        ogTitle: "♟️ WintrChess - Analysis",
+        ogTitle: "♟️ ChessTracker - Analysis",
         ogDescription: "Analyse Chess games for free."
     }
 }));
@@ -21,9 +21,9 @@ router.get("/archive",
         bundleName: "archive",
         meta: {
             title: "Game Archive",
-            ogTitle: "♟️ WintrChess - Archive",
-            ogDescription: "Your saved or analysed games on WintrChess are kept in your Game Archive.",
-            ogUrl: "https://wintrchess.com/archive"
+            ogTitle: "♟️ ChessTracker - Archive",
+            ogDescription: "Your saved or analysed games on ChessTracker are kept in your Game Archive.",
+            ogUrl: "https://chesstracker.aidenpearce.space/archive"
         }
     })
 );
@@ -31,11 +31,11 @@ router.get("/archive",
 router.get("/news*", appRouter({
     bundleName: "news",
     meta: {
-        title: "WintrChess News",
-        description: "The latest news on the WintrChess platform.",
-        ogTitle: "♟️ WintrChess - News",
-        ogDescription: "Read the latest news on the WintrChess platform.",
-        ogUrl: "https://wintrchess.com/news"
+        title: "ChessTracker News",
+        description: "The latest news on the ChessTracker platform.",
+        ogTitle: "♟️ ChessTracker - News",
+        ogDescription: "Read the latest news on the ChessTracker platform.",
+        ogUrl: "https://chesstracker.aidenpearce.space/news"
     }
 }));
 

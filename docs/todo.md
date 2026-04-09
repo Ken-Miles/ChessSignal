@@ -27,12 +27,12 @@
 - [ ] Make site identity more distinct from upstream fork
 - [ ] Remove or update references to original project where needed
 - [ ] Keep clear attribution that this project is forked
-- [ ] Remove donation links
+- [x] Remove donation links
 - [ ] Review and update terms/privacy pages
 - [ ] Create and apply a new logo
 - [ ] Create and apply a new default color scheme
-- [ ] Decide and apply final project name
-- [ ] Update README and other documentation to reflect new project identity and details
+- [x] Decide and apply final project name
+- [x] Update README and other documentation to reflect new project identity and details
 
 
 ## Milestone 1: URL state and deep-linking
@@ -98,9 +98,9 @@
 - [ ] Show clock formatting in timer similar to chess.com
 
 ### Ongoing game support
-- [ ] Add endpoint to load ongoing games from experimental payload (times + encoded moves)
-- [ ] Decode move list format
-- [ ] Decode and display time data in UI
+- [x] Add endpoint to load ongoing games from experimental payload (times + encoded moves)
+- [x] Decode move list format
+- [x] Decode and display time data in UI
 - [ ] Restrict endpoint to admin-only access to prevent abuse
 - [ ] Add current game evaluation flow via chess.com
 - [ ] Poll the right endpoint for live eval/best move updates

@@ -53,6 +53,7 @@
             "pgn": "Paste PGN...",
             "fen": "FEN string...",
             "chessCom": "Chess.com username...",
+            "chessComLive": "Chess.com live game URL or ID...",
             "lichess": "Lichess username..."
         },
         "searchGamesButton": "Search Games",

@@ -75,13 +75,13 @@ function NavigationBar() {
         </div>
 
         <div className={styles.section}>
-            <a href="https://ko-fi.com/wintrcat" target="_blank">
+            {/* <a href="https://ko-fi.com/wintrcat" target="_blank">
                 <Button
                     className={styles.support}
                     icon={iconKofi}
                     tooltipId="navigation-bar-support"
                 />
-            </a>
+            </a> */}
 
             <Tooltip
                 id="navigation-bar-support"

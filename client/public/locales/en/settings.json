@@ -35,6 +35,12 @@
         "boardColour": "Board Colour",
         "lightSquareColour": "Light Square Colour",
         "darkSquareColour": "Dark Square Colour",
+        "pieceStyle": "Piece Style",
+        "boardTexture": "Board Texture",
+        "boardPreset": "Board Preset",
+        "appBackgroundTheme": "Application Background",
+        "resetVisuals": "Reset Piece and Texture",
+        "resetBackground": "Reset Background",
         "presetsTitle": "Presets",
         "presets": {
             "wooden": "Wooden",

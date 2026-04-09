@@ -14,14 +14,14 @@ router.get(/^\/(signin|signup)/,
             return {
                 title: isSignUpPath ? "Sign Up" : "Sign In",
                 description: isSignUpPath
-                    ? "Create a WintrChess account."
-                    : "Sign in to your WintrChess account.",
+                    ? "Create a ChessTracker account."
+                    : "Sign in to your ChessTracker account.",
                 ogTitle: isSignUpPath
-                    ? "♟️ WintrChess - Sign Up"
-                    : "♟️ WintrChess - Sign In",
+                    ? "♟️ ChessTracker - Sign Up"
+                    : "♟️ ChessTracker - Sign In",
                 ogDescription: isSignUpPath
-                    ? "Create an account to use WintrChess features."
-                    : "Sign in to continue on WintrChess."
+                    ? "Create an account to use ChessTracker features."
+                    : "Sign in to continue on ChessTracker."
             };
         }
     })
@@ -49,9 +49,9 @@ router.get("/auth/reset-password",
         bundleName: "resetPassword",
         meta: {
             title: "Reset Password",
-            description: "Set a new password for your WintrChess account.",
-            ogTitle: "♟️ WintrChess - Reset Password",
-            ogDescription: "Set a new password for your WintrChess account."
+            description: "Set a new password for your ChessTracker account.",
+            ogTitle: "♟️ ChessTracker - Reset Password",
+            ogDescription: "Set a new password for your ChessTracker account."
         }
     })
 );

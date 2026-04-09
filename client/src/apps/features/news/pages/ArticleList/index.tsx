@@ -92,24 +92,24 @@ function News() {
             </h2>
 
             <div className={styles.socialsContainer}>
-                <SocialLink
+                {/* <SocialLink
                     icon={iconYouTube}
                     title="WINTR"
                     url="https://www.youtube.com/@wintrchess"
-                />
+                /> */}
 
-                <SocialLink
+                {/* <SocialLink
                     icon={iconYouTube}
                     title="wintrcat"
                     url="https://www.youtube.com/@wintrcat"
-                />
+                /> */}
 
-                <SocialLink
+                {/* <SocialLink
                     icon={iconChessCom}
                     iconSize="23px"
-                    title="WintrChess Club"
+                    title="ChessTracker Club"
                     url="https://www.chess.com/club/wintrchess/join"
-                />
+                /> */}
             </div>
         </div>
 

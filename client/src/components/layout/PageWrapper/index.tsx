@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { CSSProperties, useMemo, useState } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import ReactMarkdown from "react-markdown";
 import { ToastContainer } from "react-toastify";
@@ -30,13 +30,30 @@ function PageWrapper({
     const bugReportingMode = useSettingsStore(
         state => state.settings.bugReportingMode
     );
+    const appBackground = useSettingsStore(
+        state => state.settings.themes.appBackground
+    );
 
     const { announcement, status: announcementStatus } = useAnnouncement();
 
     const [ announcementOpen, setAnnouncementOpen ] = useState(true);
 
+    const wrapperStyle = useMemo<CSSProperties>(() => {
+        if (!appBackground) {
+            return style || {};
+        }
+
+        return {
+            ...style,
+            backgroundImage: `linear-gradient(rgba(16, 18, 22, 0.55), rgba(16, 18, 22, 0.55)), url('/img/chessboards/themes/${appBackground}')`,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+            backgroundAttachment: "fixed"
+        };
+    }, [appBackground, style]);
+
     return <QueryClientProvider client={queryClient}>
-        <div className={className} style={style}>
+        <div className={className} style={wrapperStyle}>
             {announcementOpen && announcementStatus == "success"
                 && <Announcement
                     style={{ zIndex: 99 }}
