@@ -6,6 +6,7 @@ node_modules
 .vs
 .VSCodeCounter
 .vscode/
+*.code-workspace
 
 # Mac stuff
 .DS_Store
