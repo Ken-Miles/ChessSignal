@@ -1,10 +1,11 @@
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Tooltip } from "react-tooltip";
 import { floor, clamp } from "lodash-es";
 
 import EngineVersion from "shared/constants/EngineVersion";
 import EngineArrowType from "@analysis/constants/EngineArrowType";
+import { isEngineVersionAvailable } from "@analysis/lib/engineVersionAvailability";
 import useSettingsStore from "@/stores/SettingsStore";
 import LogMessage from "@/components/common/LogMessage";
 import DropdownSetting from "@/components/settings/DropdownSetting";
@@ -12,30 +13,43 @@ import NumberSetting from "@/components/settings/NumberSetting";
 
 import * as styles from "../SettingsDialog.module.css";
 
-const engineVersionOptions = [
+interface EngineVersionOption {
+    label: string;
+    value: EngineVersion | "off";
+}
+
+const engineVersionOptions: EngineVersionOption[] = [
     {
-        label: "Stockfish 18 (108MB download)",
-        value: EngineVersion.STOCKFISH_18
-    },
-    {
-        label: "Stockfish 18 Lite (7MB download)",
+        label: "Stockfish 18 Lite (Recommended)",
         value: EngineVersion.STOCKFISH_18_LITE
     },
     {
-        label: "Stockfish 18 (Compatibility)",
+        label: "Stockfish 18 Lite Single (Lower Memory Usage)",
+        value: EngineVersion.STOCKFISH_18_LITE_SINGLE
+    },
+    {
+        label: "Stockfish 18 ASM (Compatibility)",
         value: EngineVersion.STOCKFISH_18_ASM
     },
     {
-        label: "Stockfish 17 (68 MB)",
-        value: EngineVersion.STOCKFISH_17
+        label: "Stockfish 18 Single (113 MB)",
+        value: EngineVersion.STOCKFISH_18_SINGLE
+    },
+    {
+        label: "Stockfish 18 (113 MB)",
+        value: EngineVersion.STOCKFISH_18
     },
     {
         label: "Stockfish 17 Lite (Recommended)",
         value: EngineVersion.STOCKFISH_17_LITE
     },
     {
-        label: "Stockfish 17 (Compatibility)",
+        label: "Stockfish 17 ASM (Compatibility)",
         value: EngineVersion.STOCKFISH_17_ASM
+    },
+    {
+        label: "Stockfish 17 (68 MB)",
+        value: EngineVersion.STOCKFISH_17
     },
     {
         label: "Engine Off",
@@ -64,6 +78,50 @@ function EngineOptionsArea() {
     const { t, i18n } = useTranslation(["analysis", "common"]);
 
     const { settings, setSettings } = useSettingsStore();
+
+    const [filteredEngineVersionOptions, setFilteredEngineVersionOptions] = useState(
+        engineVersionOptions
+    );
+
+    useEffect(() => {
+        let cancelled = false;
+
+        (async () => {
+            const checks = await Promise.all(engineVersionOptions.map(async option => {
+                if (option.value == "off") {
+                    return true;
+                }
+
+                return await isEngineVersionAvailable(option.value);
+            }));
+
+            if (cancelled) {
+                return;
+            }
+
+            const availableOptions = engineVersionOptions.filter((_, index) => checks[index]);
+            setFilteredEngineVersionOptions(availableOptions);
+
+            if (!settings.analysis.engine.enabled) {
+                return;
+            }
+
+            const selectedAvailable = availableOptions.some(option => (
+                option.value == settings.analysis.engine.version
+            ));
+
+            if (!selectedAvailable) {
+                setSettings(draft => {
+                    draft.analysis.engine.enabled = false;
+                    return draft;
+                });
+            }
+        })();
+
+        return () => {
+            cancelled = true;
+        };
+    }, [settings.analysis.engine.enabled, settings.analysis.engine.version, setSettings]);
 
     const engineArrowsOptions = useMemo(() => [
         {
@@ -98,12 +156,12 @@ function EngineOptionsArea() {
             />
 
             <DropdownSetting
-                options={engineVersionOptions}
-                defaultValue={engineVersionOptions.find(option => (
+                options={filteredEngineVersionOptions}
+                defaultValue={filteredEngineVersionOptions.find(option => (
                     settings.analysis.engine.enabled
                         ? option.value == settings.analysis.engine.version
                         : option.value == "off"
-                ))}
+                )) || filteredEngineVersionOptions.find(option => option.value == "off")}
                 onSelect={option => {
                     if (!option) return;
 

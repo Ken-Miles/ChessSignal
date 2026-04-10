@@ -1,5 +1,5 @@
 
-# ChessTracker TODO
+# ChessSignal TODO
 
 ## Milestone 0: Quick wins and cleanup
 
@@ -123,3 +123,6 @@
 ## Milestone 6: Advanced features
 - [ ] Implement chess.com coach-like experience
 - [ ] Explore live game features/endgame vision
+
+# Unknowns
+- [ ] Figure out significance of ads.txt file

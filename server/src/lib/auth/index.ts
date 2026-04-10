@@ -39,13 +39,13 @@ function createAuth(database: mongo.Db) {
             requireEmailVerification: true,
             sendResetPassword: async ({ user, url }) => sendAccountEmail({
                 recipient: user.email,
-                subject: "Reset your ChessTracker password",
-                message: "Please reset your ChessTracker account's "
+                subject: "Reset your ChessSignal password",
+                message: "Please reset your ChessSignal account's "
                     + "password by clicking the button below:",
                 buttonLabel: "Reset Password",
                 buttonUrl: url,
                 plaintextFallback: "Please use the link to reset your"
-                    + ` ChessTracker account's password: ${url}`
+                    + ` ChessSignal account's password: ${url}`
             }),
             revokeSessionsOnPasswordReset: true
         },
@@ -53,12 +53,12 @@ function createAuth(database: mongo.Db) {
             autoSignInAfterVerification: true,
             sendVerificationEmail: async ({ user, url }) => sendAccountEmail({
                 recipient: user.email,
-                subject: "Verify your ChessTracker account",
-                message: "Thank you for creating an account on ChessTracker! "
+                subject: "Verify your ChessSignal account",
+                message: "Thank you for creating an account on ChessSignal! "
                     + "Please verify your account by clicking the button below:",
                 buttonLabel: "Verify Account",
                 buttonUrl: url,
-                plaintextFallback: `Please verify your ChessTracker account: ${url}`
+                plaintextFallback: `Please verify your ChessSignal account: ${url}`
             })
         },
         socialProviders: googleOAuthEnabled
@@ -77,11 +77,11 @@ function createAuth(database: mongo.Db) {
                 sendChangeEmailVerification: async (ctx) => sendAccountEmail({
                     recipient: ctx.newEmail,
                     subject: "Verify your new email address",
-                    message: "Please verify your ChessTracker account's new"
+                    message: "Please verify your ChessSignal account's new"
                         + " email address by clicking the button below:",
                     buttonLabel: "Verify Email Address",
                     buttonUrl: ctx.url,
-                    plaintextFallback: "Please verify your ChessTracker account's"
+                    plaintextFallback: "Please verify your ChessSignal account's"
                         + ` new email address: ${ctx.url}`
                 })
             },

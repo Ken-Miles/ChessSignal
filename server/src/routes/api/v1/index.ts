@@ -11,7 +11,7 @@ router.use("/",
     createApiDocsRouter({
         apiBasePath: "/api/v1",
         includeInternal: false,
-        title: "ChessTracker API",
+        title: "ChessSignal API",
         description: "Public API documentation for external developers."
     })
 );

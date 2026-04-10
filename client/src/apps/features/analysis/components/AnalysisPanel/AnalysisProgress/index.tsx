@@ -43,7 +43,7 @@ function AnalysisProgress() {
         }
 
         function focusListener() {
-            document.title = "ChessTracker";
+            document.title = "ChessSignal";
             removeEventListener("focus", focusListener);
         }
 

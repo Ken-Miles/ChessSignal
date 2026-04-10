@@ -25,7 +25,7 @@ function Typography({
                 className={iconClassName}
                 style={{ height: 40, ...iconStyle }}
                 src={iconLogo}
-                title="ChessTracker"
+                title="ChessSignal"
                 draggable={false}
             />
         }
@@ -34,7 +34,7 @@ function Typography({
             className={`${styles.title} ${textClassName}`}
             style={textStyle}
         >
-            ChessTracker
+            ChessSignal
 
             {/* <b style={{ letterSpacing: 0 }}>
                 Chess

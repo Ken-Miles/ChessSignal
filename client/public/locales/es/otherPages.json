@@ -1,7 +1,7 @@
 {
     "news": {
         "title": "Diario",
-        "titleDescription": "Obtén las últimas actualizaciones de la plataforma ChessTracker",
+        "titleDescription": "Obtén las últimas actualizaciones de la plataforma ChessSignal",
         "error": "Se produjo un error al cargar el periódico.",
         "article": {
             "unfound": "No hemos podido encontrar este artículo.",

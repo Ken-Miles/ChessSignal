@@ -23,9 +23,9 @@ router.use("/internal",
         bundleName: "internal",
         meta: {
             title: "Internal",
-            description: "ChessTracker internal tools.",
-            ogTitle: "♟️ ChessTracker - Internal",
-            ogDescription: "ChessTracker internal tools.",
+            description: "ChessSignal internal tools.",
+            ogTitle: "♟️ ChessSignal - Internal",
+            ogDescription: "ChessSignal internal tools.",
             robots: "noindex, nofollow"
         }
     })

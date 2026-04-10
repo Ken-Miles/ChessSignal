@@ -23,16 +23,16 @@ router.use("/internal",
     createApiDocsRouter({
         apiBasePath: "/api/v1",
         includeInternal: true,
-        title: "ChessTracker Internal API",
+        title: "ChessSignal Internal API",
         description: "Internal API documentation for maintainers."
     }),
     appRouter({
         bundleName: "internal",
         meta: {
             title: "Internal",
-            description: "ChessTracker internal tools.",
-            ogTitle: "♟️ ChessTracker - Internal",
-            ogDescription: "ChessTracker internal tools.",
+            description: "ChessSignal internal tools.",
+            ogTitle: "♟️ ChessSignal - Internal",
+            ogDescription: "ChessSignal internal tools.",
             robots: "noindex, nofollow"
         }
     })

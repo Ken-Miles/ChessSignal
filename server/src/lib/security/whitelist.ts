@@ -5,7 +5,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const whitelistedHostnames = [
-    /^(.+\.)?chesstracker\.aidenpearce\.space$/,
+    /^(.+\.)?chesssignal\.aidenpearce\.space$/,
     ...(process.env.NODE_ENV == "development"
         ? [/localhost/] : []
     )

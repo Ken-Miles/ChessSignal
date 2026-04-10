@@ -10,7 +10,7 @@ router.get("/analysis", appRouter({
     meta: {
         title: "Game Analysis",
         description: "Analyse your Chess games, free of charge.",
-        ogTitle: "♟️ ChessTracker - Analysis",
+        ogTitle: "♟️ ChessSignal - Analysis",
         ogDescription: "Analyse Chess games for free."
     }
 }));
@@ -21,9 +21,9 @@ router.get("/archive",
         bundleName: "archive",
         meta: {
             title: "Game Archive",
-            ogTitle: "♟️ ChessTracker - Archive",
-            ogDescription: "Your saved or analysed games on ChessTracker are kept in your Game Archive.",
-            ogUrl: "https://chesstracker.aidenpearce.space/archive"
+            ogTitle: "♟️ ChessSignal - Archive",
+            ogDescription: "Your saved or analysed games on ChessSignal are kept in your Game Archive.",
+            ogUrl: "https://chesssignal.aidenpearce.space/archive"
         }
     })
 );
@@ -31,11 +31,11 @@ router.get("/archive",
 router.get("/news*", appRouter({
     bundleName: "news",
     meta: {
-        title: "ChessTracker News",
-        description: "The latest news on ChessTracker.",
-        ogTitle: "♟️ ChessTracker - News",
-        ogDescription: "Read the latest news on ChessTracker.",
-        ogUrl: "https://chesstracker.aidenpearce.space/news"
+        title: "ChessSignal News",
+        description: "The latest news on ChessSignal.",
+        ogTitle: "♟️ ChessSignal - News",
+        ogDescription: "Read the latest news on ChessSignal.",
+        ogUrl: "https://chesssignal.aidenpearce.space/news"
     }
 }));
 

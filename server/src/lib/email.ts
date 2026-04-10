@@ -30,7 +30,7 @@ export async function sendAccountEmail(options: AccountEmailOptions) {
     });
 
     await transporter.sendMail({
-        from: `"ChessTracker No-Reply" <${process.env.AUTOMATED_EMAIL_ADDRESS}>`,
+        from: `"ChessSignal No-Reply" <${process.env.AUTOMATED_EMAIL_ADDRESS}>`,
         to: options.recipient,
         subject: options.subject,
         text: options.plaintextFallback,

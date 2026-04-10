@@ -1,8 +1,8 @@
 # ☕ Contributing
 
-If you'd like to contribute to the ChessTracker platform, you can get started by reading this guide. Thank you for considering a contribution!
+If you'd like to contribute to the ChessSignal platform, you can get started by reading this guide. Thank you for considering a contribution!
 
-## 🏰 The State of ChessTracker
+## 🏰 The State of ChessSignal
 
 This is a project that I worked on throughout my spare time for 14 months. I learnt a lot of things on the go while building this, and it was (mostly) super fun!
 
@@ -26,7 +26,7 @@ There were also a bunch of larger systems on the roadmap; hopefully we can all w
 - Explanations on Chess moves, like Chess.com's coach. This may be a monumental challenge! I would love to see something on par with or even better than Chess.com's.
 - Automated classifier testing? A large set of pre-evaluated games to test the brilliant move algorithm on etc.
 
-If you'd like to contribute to ChessTracker, but don't know where to start, this list may give you some inspiration 💙
+If you'd like to contribute to ChessSignal, but don't know where to start, this list may give you some inspiration 💙
 
 ## 📋 Code Style
 
@@ -85,4 +85,4 @@ Please be nice when discussing things in pull requests! 💙
 
 If you have found a security vulnerability, please report it responsibly! Some that do not cause that much damage can be opened as an issue, though if you have found a critical vulnerability that could, for example, affect the safety of user information, please instead send an email to:
 
-[contact@chesstracker.aidenpearce.space](mailto:contact@chesstracker.aidenpearce.space)
+[contact@chesssignal.aidenpearce.space](mailto:contact@chesssignal.aidenpearce.space)

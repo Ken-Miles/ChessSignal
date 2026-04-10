@@ -4,8 +4,10 @@ enum EngineVersion {
     STOCKFISH_17_LITE = "stockfish/17/stockfish-17-lite-single.js",
     STOCKFISH_17 = "stockfish/17/stockfish-17-single.js",
     STOCKFISH_18_ASM = "stockfish/18/stockfish-18-asm.js",
-    STOCKFISH_18_LITE = "stockfish/18/stockfish-18-lite-single.js",
-    STOCKFISH_18 = "stockfish/18/stockfish-18-single.js"
+    STOCKFISH_18_LITE = "stockfish/18/stockfish-18-lite.js",
+    STOCKFISH_18_LITE_SINGLE = "stockfish/18/stockfish-18-lite-single.js",
+    STOCKFISH_18 = "stockfish/18/stockfish-18.js",
+    STOCKFISH_18_SINGLE = "stockfish/18/stockfish-18-single.js"
 }
 
 export default EngineVersion;

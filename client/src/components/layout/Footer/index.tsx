@@ -40,7 +40,7 @@ function Footer({ className, style }: FooterProps) {
             />
 
             <span className={styles.copyrightNotice}>
-                Copyright © {copyrightYear} ChessTracker
+                Copyright © {copyrightYear} ChessSignal
             </span>
 
             {/* <span className={styles.copyrightNotice}>

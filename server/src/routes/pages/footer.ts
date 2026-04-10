@@ -8,9 +8,9 @@ router.get("/help", appRouter({
 	bundleName: "helpCenter",
 	meta: {
 		title: "Help Center",
-		description: "Get help with using ChessTracker.",
-		ogTitle: "♟️ ChessTracker - Help Center",
-		ogDescription: "Get help with using ChessTracker."
+		description: "Get help with using ChessSignal.",
+		ogTitle: "♟️ ChessSignal - Help Center",
+		ogDescription: "Get help with using ChessSignal."
 	}
 }));
 
@@ -22,14 +22,14 @@ router.get(/^\/(terms|privacy)/, appRouter({
 		return {
 			title: isPrivacy ? "Privacy Policy" : "Terms of Service",
 			description: isPrivacy
-				? "Read the ChessTracker privacy policy."
-				: "Read the ChessTracker terms of service.",
+				? "Read the ChessSignal privacy policy."
+				: "Read the ChessSignal terms of service.",
 			ogTitle: isPrivacy
-				? "♟️ ChessTracker - Privacy Policy"
-				: "♟️ ChessTracker - Terms of Service",
+				? "♟️ ChessSignal - Privacy Policy"
+				: "♟️ ChessSignal - Terms of Service",
 			ogDescription: isPrivacy
-				? "Read how ChessTracker handles your data."
-				: "Read the terms for using ChessTracker."
+				? "Read how ChessSignal handles your data."
+				: "Read the terms for using ChessSignal."
 		};
 	}
 }));

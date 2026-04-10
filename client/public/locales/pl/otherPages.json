@@ -1,7 +1,7 @@
 {
     "news": {
         "title": "Gazeta",
-        "titleDescription": "Uzyskaj najnowsze aktualizacje platformy ChessTracker",
+        "titleDescription": "Uzyskaj najnowsze aktualizacje platformy ChessSignal",
         "error": "Wystąpił błąd podczas ładowania gazety.",
         "article": {
             "unfound": "Nie mogliśmy znaleźć tego artykułu.",

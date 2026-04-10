@@ -14,14 +14,14 @@ router.get(/^\/(signin|signup)/,
             return {
                 title: isSignUpPath ? "Sign Up" : "Sign In",
                 description: isSignUpPath
-                    ? "Create a ChessTracker account."
-                    : "Sign in to your ChessTracker account.",
+                    ? "Create a ChessSignal account."
+                    : "Sign in to your ChessSignal account.",
                 ogTitle: isSignUpPath
-                    ? "♟️ ChessTracker - Sign Up"
-                    : "♟️ ChessTracker - Sign In",
+                    ? "♟️ ChessSignal - Sign Up"
+                    : "♟️ ChessSignal - Sign In",
                 ogDescription: isSignUpPath
-                    ? "Create an account to use ChessTracker features."
-                    : "Sign in to continue on ChessTracker."
+                    ? "Create an account to use ChessSignal features."
+                    : "Sign in to continue on ChessSignal."
             };
         }
     })
@@ -49,9 +49,9 @@ router.get("/auth/reset-password",
         bundleName: "resetPassword",
         meta: {
             title: "Reset Password",
-            description: "Set a new password for your ChessTracker account.",
-            ogTitle: "♟️ ChessTracker - Reset Password",
-            ogDescription: "Set a new password for your ChessTracker account."
+            description: "Set a new password for your ChessSignal account.",
+            ogTitle: "♟️ ChessSignal - Reset Password",
+            ogDescription: "Set a new password for your ChessSignal account."
         }
     })
 );

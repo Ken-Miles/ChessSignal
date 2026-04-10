@@ -17,9 +17,9 @@ router.get("/settings*", appRouter({
     bundleName: "settings",
     meta: {
         title: "Settings",
-        description: "Manage your ChessTracker settings.",
-        ogTitle: "♟️ ChessTracker - Settings",
-        ogDescription: "Manage your ChessTracker settings."
+        description: "Manage your ChessSignal settings.",
+        ogTitle: "♟️ ChessSignal - Settings",
+        ogDescription: "Manage your ChessSignal settings."
     }
 }));
 
@@ -32,7 +32,7 @@ router.get("/*", appRouter({
     meta: {
         title: "Page Not Found",
         description: "The page you requested could not be found.",
-        ogTitle: "♟️ ChessTracker - Page Not Found",
+        ogTitle: "♟️ ChessSignal - Page Not Found",
         ogDescription: "The page you requested could not be found.",
         robots: "noindex, nofollow"
     }

@@ -107,7 +107,7 @@ function News() {
                 {/* <SocialLink
                     icon={iconChessCom}
                     iconSize="23px"
-                    title="ChessTracker Club"
+                    title="ChessSignal Club"
                     url="https://www.chess.com/club/wintrchess/join"
                 /> */}
             </div>

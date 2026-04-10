@@ -1,8 +1,13 @@
 import { useTranslation } from "react-i18next";
 
 import AnalysedGame from "shared/types/game/AnalysedGame";
+import EngineVersion from "shared/constants/EngineVersion";
 import AnalysisStatus from "@analysis/constants/AnalysisStatus";
 import AnalysisTab from "@analysis/constants/AnalysisTab";
+import {
+    findFirstAvailableEngineVersion,
+    isEngineVersionAvailable
+} from "@analysis/lib/engineVersionAvailability";
 import useSettingsStore from "@/stores/SettingsStore";
 import useAnalysisBoardStore from "@analysis/stores/AnalysisBoardStore";
 import useAnalysisProgressStore from "@analysis/stores/AnalysisProgressStore";
@@ -14,6 +19,10 @@ function useEvaluateGame() {
 
     const settings = useSettingsStore(
         state => state.settings.analysis.engine
+    );
+
+    const setSettings = useSettingsStore(
+        state => state.setSettings
     );
 
     const dispatchCurrentNodeUpdate = useAnalysisBoardStore(
@@ -31,6 +40,34 @@ function useEvaluateGame() {
     );
 
     async function evaluateGame(analysisGame: AnalysedGame) {
+        let selectedEngineVersion = settings.version;
+
+        const selectedVersionAvailable = await isEngineVersionAvailable(
+            selectedEngineVersion
+        );
+
+        if (!selectedVersionAvailable) {
+            const fallbackVersion = await findFirstAvailableEngineVersion([
+                EngineVersion.STOCKFISH_18_ASM,
+                EngineVersion.STOCKFISH_17_ASM
+            ]);
+
+            if (!fallbackVersion) {
+                setAnalysisStatus(AnalysisStatus.AWAITING_CAPTCHA);
+                setAnalysisError(t("analysisError"));
+
+                const noopController = new AbortController();
+                return noopController;
+            }
+
+            selectedEngineVersion = fallbackVersion;
+
+            setSettings(draft => {
+                draft.analysis.engine.version = fallbackVersion;
+                return draft;
+            });
+        }
+
         setAnalysisStatus(AnalysisStatus.EVALUATING);
 
         if (!analysisGame.source?.chessCom?.isLiveOngoing) {
@@ -38,7 +75,7 @@ function useEvaluateGame() {
         }
 
         const evaluator = createGameEvaluator(analysisGame, {
-            engineVersion: settings.version,
+            engineVersion: selectedEngineVersion,
             engineDepth: settings.depth,
             engineTimeLimit: settings.timeLimitEnabled
                 ? settings.timeLimit

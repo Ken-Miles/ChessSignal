@@ -1,6 +1,6 @@
-# 🏗️ Hosting ChessTracker locally
+# 🏗️ Hosting ChessSignal locally
 
-> This is a guide on how to get ChessTracker running on your local machine.
+> This is a guide on how to get ChessSignal running on your local machine.
 
 ## Prerequisites
 
@@ -22,13 +22,13 @@ cd wintrchess
 
 ### Set environment variables
 
-These are the environment variables that you can set when hosting ChessTracker:
+These are the environment variables that you can set when hosting ChessSignal:
 
 ```toml
 NODE_ENV="production"
 ```
 
-The environment that the app is running in. Can be one of two values: `production` (default) and `development`. In production, only requests with the `Host` header set to `chesstracker.aidenpearce.space` are accepted. You can edit the hostname whitelist in `server/src/lib/security/whitelist.ts`.
+The environment that the app is running in. Can be one of two values: `production` (default) and `development`. In production, only requests with the `Host` header set to `chesssignal.aidenpearce.space` are accepted. You can edit the hostname whitelist in `server/src/lib/security/whitelist.ts`.
 
 ```toml
 PORT=8080
@@ -42,7 +42,7 @@ ORIGIN="http://localhost:8080"
 > Required
 
 The origin - URLs in emails are constructed using this, and the authentication uses it as a base URL.
-For example, `http://localhost:8080` or `https://chesstracker.aidenpearce.space`.
+For example, `http://localhost:8080` or `https://chesssignal.aidenpearce.space`.
 
 ```toml
 DATABASE_URI="mongodb://" # ...
@@ -95,8 +95,8 @@ ANALYTICS_MEASUREMENT_ID="G-EX024ZXSNX"
 A Google Analytics Measurement ID, if you would like to enable analytics.
 
 ```toml
-EMAIL_ACCOUNT="contact@chesstracker.aidenpearce.space"
-AUTOMATED_EMAIL_ADDRESS="no-reply@chesstracker.aidenpearce.space"
+EMAIL_ACCOUNT="contact@chesssignal.aidenpearce.space"
+AUTOMATED_EMAIL_ADDRESS="no-reply@chesssignal.aidenpearce.space"
 AUTOMATED_EMAIL_KEY="aaaa bbbb cccc dddd"
 ```
 
@@ -135,7 +135,7 @@ Make sure you have your database running.
 
 ## Deploy with Docker
 
-You might find it easier to run ChessTracker in a Docker container. The database will be created for you so you will not have to
+You might find it easier to run ChessSignal in a Docker container. The database will be created for you so you will not have to
 specify a database URI.
 
 ### Build and start
