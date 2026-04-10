@@ -15,3 +15,7 @@ node_modules
 
 # chess image rendering
 chessglyphs/
+
+# Stockfish WASM's too big to commit
+stockfish-18.wasm
+stockfish-18-single.wasm
