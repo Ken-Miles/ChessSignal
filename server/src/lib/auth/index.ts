@@ -97,7 +97,7 @@ function createAuth(database: mongo.Db) {
             }
         },
         logger: { disabled: cluster.worker?.id != 1 },
-        advanced: { cookiePrefix: "wintrchess" }
+        advanced: { cookiePrefix: "chesssignal" }
     });
 }
 

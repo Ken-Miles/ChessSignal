@@ -14,10 +14,10 @@
 ### Clone the repository
 
 ```sh
-git clone https://github.com/wintrcat/wintrchess.git
+git clone https://github.com/Ken-Miles/ChessSignal.git
 
 # Go to the directory
-cd wintrchess
+cd chesssignal
 ```
 
 ### Set environment variables
@@ -48,7 +48,7 @@ For example, `http://localhost:8080` or `https://chesssignal.aidenpearce.space`.
 DATABASE_URI="mongodb://" # ...
 ```
 
-A connection string for a MongoDB database. Collections, indexes etc. will be created when the app runs. Defaults to `mongodb://database/wintrchess`.
+A connection string for a MongoDB database. Collections, indexes etc. will be created when the app runs. Defaults to `mongodb://database/chesssignal`.
 
 ```toml
 ANALYSIS_SESSION_ACTIONS=80

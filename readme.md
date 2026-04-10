@@ -3,11 +3,11 @@
 <h1 align="center">
     <!-- <a href="https://chesssignal.aidenpearce.space"><img width="175" src="https://github.com/user-attachments/assets/9a33a746-c9cd-43b8-b17b-564f3f6ce4a2" /></a> -->
     <br>
-    Ken-Miles Chess Game Review
+    ChessSignal Game Review
 </h1>
 
 <p align="center">
-    A website that analyses Chess games with move classifications, for free.
+    ChessSignal is a website that analyses Chess games with move classifications, for free.
 </p>
 
 <p align="center">

@@ -74,8 +74,8 @@ function Footer({ className, style }: FooterProps) {
                 <a href="/privacy">
                     {t("footer.privacyPolicy")}
                 </a>
-
-                <a href="https://github.com/WintrCat/wintrchess">
+                
+                <a href="https://github.com/Ken-Miles/ChessSignal">
                     {t("footer.openSource")}
                 </a>
             </div>
