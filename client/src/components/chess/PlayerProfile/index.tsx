@@ -99,6 +99,8 @@ function PlayerProfile({
     const [ liveClockDisplayMs, setLiveClockDisplayMs ] = useState<number | undefined>(clockTimeMs);
     const initialClockTimeMsRef = useRef<number>();
     const displayedClockMs = liveClockDisplayMs;
+    const hasClockTime = displayedClockMs != undefined
+        && !Number.isNaN(displayedClockMs);
     const isLowTimeValue = displayedClockMs != undefined
         && !Number.isNaN(displayedClockMs)
         && displayedClockMs < 20000;
@@ -261,7 +263,7 @@ function PlayerProfile({
             </div>
         </div>
 
-        {showClock && <div
+        {showClock && hasClockTime && <div
             className={`${styles.clock} ${clockActive ? styles.clockActive : styles.clockInactive} ${playerColour == PieceColour.WHITE ? styles.clockWhite : styles.clockBlack} ${clockActive && playerColour == PieceColour.BLACK ? styles.clockBlackActive : ""} ${isLowTime ? styles.clockLowTime : ""}`}
         >
             <span className={styles.clockIcon}>
