@@ -16,6 +16,9 @@ node_modules
 # chess image rendering
 chessglyphs/
 
+# Custom one-time moving python scripts
+scripts/*.py
+
 # Stockfish WASM's too big to commit
 stockfish-18.wasm
 stockfish-18-single.wasm
