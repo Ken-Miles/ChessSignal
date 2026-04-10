@@ -5,8 +5,13 @@ import { range } from "lodash-es";
 
 import { EngineLine } from "shared/types/game/position/EngineLine";
 import { pickEngineLines } from "shared/types/game/position/EngineLine";
+import EngineVersion from "shared/constants/EngineVersion";
 import LogMessage from "@/components/common/LogMessage";
 import Engine from "@analysis/lib/engine";
+import {
+    findFirstAvailableEngineVersion,
+    isEngineVersionAvailable
+} from "@analysis/lib/engineVersionAvailability";
 
 import EngineLineInfo from "./EngineLine";
 import SkeletonLine from "./SkeletonLine";
@@ -59,11 +64,44 @@ function RealtimeEngine({
     // Instantiate new engine when version changes
     useEffect(() => {
         engine?.terminate();
+        setEngine(undefined);
 
-        const newEngine = new Engine(hydratedConfig.version);
-        setEngine(newEngine);
+        let disposed = false;
 
-        return () => newEngine.terminate();
+        async function initializeEngine() {
+            const selectedVersionAvailable = await isEngineVersionAvailable(
+                hydratedConfig.version
+            );
+
+            if (disposed) return;
+
+            const version = selectedVersionAvailable
+                ? hydratedConfig.version
+                : await findFirstAvailableEngineVersion([
+                    EngineVersion.STOCKFISH_18_ASM,
+                    EngineVersion.STOCKFISH_17_ASM
+                ]);
+
+            if (disposed) return;
+
+            if (!version) {
+                setEvaluationError(t("realtimeEngine.error"));
+                return;
+            }
+
+            try {
+                setEvaluationError(undefined);
+                setEngine(new Engine(version));
+            } catch {
+                setEvaluationError(t("realtimeEngine.error"));
+            }
+        }
+
+        void initializeEngine();
+
+        return () => {
+            disposed = true;
+        };
     }, [hydratedConfig.version]);
 
     // Get number of lines expected to appear

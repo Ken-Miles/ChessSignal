@@ -2,6 +2,17 @@ import EngineVersion from "shared/constants/EngineVersion";
 
 const availabilityCache = new Map<EngineVersion, Promise<boolean>>();
 
+function supportsSharedArrayBuffer() {
+    return typeof SharedArrayBuffer !== "undefined";
+}
+
+const sharedArrayBufferRequiredVersions = new Set<EngineVersion>([
+    EngineVersion.STOCKFISH_17_LITE,
+    EngineVersion.STOCKFISH_17,
+    EngineVersion.STOCKFISH_18_LITE,
+    EngineVersion.STOCKFISH_18
+]);
+
 const requiredWasmAssets: Partial<Record<EngineVersion, string[]>> = {
     [EngineVersion.STOCKFISH_17_LITE]: [
         "/engines/stockfish/17/stockfish-17-lite-single.wasm"
@@ -50,6 +61,13 @@ export async function isEngineVersionAvailable(
     }
 
     const availabilityPromise = (async () => {
+        if (
+            sharedArrayBufferRequiredVersions.has(version)
+            && !supportsSharedArrayBuffer()
+        ) {
+            return false;
+        }
+
         const workerExists = await assetExists(`/engines/${version}`);
         if (!workerExists) {
             return false;
