@@ -44,10 +44,12 @@ function NavigationBar() {
                     onClick={() => setSidebarOpen(true)}
                 />
 
-                <Typography
-                    textClassName={styles.typographyText}
-                    includeIcon
-                />
+                <a href="/" className={styles.homeLink}>
+                    <Typography
+                        textClassName={styles.typographyText}
+                        includeIcon
+                    />
+                </a>
             </div>
 
             <div className={styles.tabs}>

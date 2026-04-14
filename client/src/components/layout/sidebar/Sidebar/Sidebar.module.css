@@ -23,6 +23,18 @@
     width: 100%;
 }
 
+.homeLink {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    color: inherit;
+    text-decoration: none;
+}
+
+.homeLink:hover {
+    text-decoration: none;
+}
+
 .closeButton {
     width: 50px;
 

@@ -29,7 +29,9 @@ function Sidebar({ style, onClose }: SidebarProps) {
                 onClick={onClose}
             />
 
-            <Typography className={styles.title} includeIcon/>
+            <a href="/" className={styles.homeLink}>
+                <Typography className={styles.title} includeIcon/>
+            </a>
         </div>
 
         <div style={{ padding: "0 10px" }}>
