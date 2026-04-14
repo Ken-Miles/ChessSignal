@@ -7,8 +7,6 @@ import { getTopEngineLine } from "shared/types/game/position/EngineLine";
 import Engine from "@analysis/lib/engine";
 import getCloudEvaluation from "./cloudEvaluate";
 
-const MAX_CLOUD_EVAL_PLIES = 10;
-
 interface EvaluateMovesOptions {
     engineVersion: EngineVersion;
     maxEngineCount?: number;
@@ -45,55 +43,51 @@ function createGameEvaluator(
     }
 
     async function evaluator(): Promise<StateTreeNode[]> {
-        // Apply cloud evaluations where possible
-        for (const [index, stateTreeNode] of stateTreeNodes.entries()) {
+        // Mark already-evaluated nodes complete for progress tracking.
+        for (const index of stateTreeNodes.keys()) {
+            if (evaluationTargetIndexes.includes(index)) continue;
+
+            progresses[index] = 1;
+        }
+        options.onProgress?.(getProgress());
+
+        // Apply cloud evaluations until the first non-qualifying response.
+        let cloudEvaluatedCount = 0;
+
+        for (const index of evaluationTargetIndexes) {
             if (controller.signal.aborted) break;
 
-            if (!evaluationTargetIndexes.includes(index)) {
-                progresses[index] = 1;
-                options.onProgress?.(getProgress());
-                continue;
+            const stateTreeNode = stateTreeNodes[index];
+
+            let cloudEngineLines;
+
+            try {
+                cloudEngineLines = await getCloudEvaluation(
+                    stateTreeNode.state.fen,
+                    options.cloudEngineLines
+                );
+            } catch {
+                break;
             }
 
-            // Keep cloud calls focused to early positions (about first 5 moves).
-            if (index > MAX_CLOUD_EVAL_PLIES) {
-                continue;
-            }
-
-            const cloudEvaluationResult = await getCloudEvaluation(
-                stateTreeNode.state.fen,
-                options.cloudEngineLines
-            );
-
-            if (cloudEvaluationResult == null) {
-                continue;
-            }
-
-            let cloudEngineLines = cloudEvaluationResult;
-
-            if (options.engineDepth != undefined) {
-                const targetDepth = options.engineDepth;
-
-                cloudEngineLines = cloudEngineLines.map(line => ({
-                    ...line,
-                    depth: Math.min(line.depth, targetDepth)
-                }));
+            if (cloudEngineLines == null) {
+                break;
             }
 
             const topCloudLine = getTopEngineLine(cloudEngineLines);
             if (!topCloudLine) {
-                continue;
+                break;
             }
 
             if (
                 options.engineDepth != undefined
                 && topCloudLine.depth < options.engineDepth
             ) {
-                continue;
+                break;
             }
 
             if (cloudEngineLines.length < options.cloudEngineLines) {
-                continue;
+                break;
             }
 
             stateTreeNode.state.engineLines = [
@@ -103,13 +97,12 @@ function createGameEvaluator(
 
             progresses[index] = 1;
             options.onProgress?.(getProgress());
+            cloudEvaluatedCount++;
         }
 
-        // Locally evaluate remaining positions
-
-        const localEvaluationIndexes = evaluationTargetIndexes.filter(
-            index => stateTreeNodes[index].state.engineLines.length == 0
-        );
+        // Locally evaluate remaining positions from the cloud cutoff onward.
+        const localStartCursor = Math.max(cloudEvaluatedCount - 1, 0);
+        const localEvaluationIndexes = evaluationTargetIndexes.slice(localStartCursor);
 
         if (localEvaluationIndexes.length == 0) {
             return stateTreeNodes;

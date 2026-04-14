@@ -9,7 +9,8 @@ import useSettingsStore from "@/stores/SettingsStore";
 import {
     classificationColours,
     classificationImages,
-    highlightedClassifications
+    highlightedClassifications,
+    shouldShowMoveClassificationIcon
 } from "@analysis/constants/classifications";
 
 import * as styles from "./MainlineMoveList.module.css";
@@ -45,9 +46,10 @@ function getFigurineColor(
     classification: Classification | undefined,
     isWhiteMove: boolean
 ) {
-
-    if (classification != undefined
-            && highlightedClassifications.includes(classification)) {
+    if (
+        classification != undefined
+        && highlightedClassifications.includes(classification)
+    ) {
         return classificationColours[classification as Classification];
     }
 
@@ -184,9 +186,10 @@ function MainlineMoveList({
         const parsed = parseSanForFigurine(san, isWhiteMove);
         const classification = node.state.classification as Classification | undefined;
         const figurineColor = getFigurineColor(classification, isWhiteMove);
-        const showAnnotationIcon = classification
-            && !hideClassifications
-            && parsed.piece;
+        const showAnnotationIcon = shouldShowMoveClassificationIcon(
+            classification,
+            hideClassifications
+        );
 
         return <button
             type="button"
@@ -194,7 +197,7 @@ function MainlineMoveList({
             className={styles.moveNode + ` ${isWhiteMove ? styles.whiteMove : styles.blackMove} ${annotationClass(classification)}` + (selectedNodeId == node.id ? ` ${styles.selected}` : "")}
             onClick={() => onMoveClick(node)}
         >
-            {showAnnotationIcon && <img
+            {showAnnotationIcon && classification && <img
                 src={classificationImages[classification]}
                 width={14}
                 height={14}

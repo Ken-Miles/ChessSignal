@@ -83,3 +83,23 @@ export const highlightedClassifications: Classification[] = [
     Classification.MISTAKE,
     Classification.BLUNDER
 ];
+
+export const moveListIconClassifications: Classification[] = [
+    Classification.BRILLIANT,
+    Classification.CRITICAL,
+    Classification.INACCURACY,
+    Classification.MISTAKE,
+    Classification.MISS,
+    Classification.BLUNDER
+];
+
+export function shouldShowMoveClassificationIcon(
+    classification?: Classification,
+    hideClassifications?: boolean
+) {
+    if (!classification || hideClassifications) {
+        return false;
+    }
+
+    return moveListIconClassifications.includes(classification);
+}

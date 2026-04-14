@@ -9,6 +9,8 @@ interface RealtimeEngineProps {
     style?: CSSProperties;
     initialPosition: string;
     playedUciMoves?: string[];
+    cachedEngineLines?: EngineLine[];
+    shouldEvaluate?: boolean;
     config: {
         version: EngineVersion;
         depth?: number;

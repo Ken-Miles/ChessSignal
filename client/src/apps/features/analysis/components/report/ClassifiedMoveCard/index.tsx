@@ -53,6 +53,19 @@ function getTopAlternativeMove(currentNode: StateTreeNode) {
     }
 }
 
+function getClassificationIconSrc(
+    classification: Classification | undefined,
+    realtimeClassifyError: string | undefined
+) {
+    if (classification) {
+        return classificationImages[classification] || loadingClassificationIcon;
+    }
+
+    return realtimeClassifyError
+        ? errorClassificationIcon
+        : loadingClassificationIcon;
+}
+
 function ClassifiedMoveCard() {
     const { t } = useTranslation(["common", "analysis"]);
 
@@ -134,15 +147,7 @@ function ClassifiedMoveCard() {
             }
         >
             <div className={styles.classification}>
-                {nodeClassification != Classification.MISS
-                    && <img src={nodeClassification
-                        ? classificationImages[nodeClassification]
-                        : (realtimeClassifyError
-                            ? errorClassificationIcon
-                            : loadingClassificationIcon
-                        )
-                    }/>
-                }
+                <img src={getClassificationIconSrc(nodeClassification, realtimeClassifyError)}/>
 
                 <span
                     className={styles.classificationName}

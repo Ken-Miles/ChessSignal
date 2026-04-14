@@ -123,7 +123,6 @@ function AnalysisPanel({
 
             {gameAnalysisOpen
                 && currentNode.state.move
-                && !settings.classifications.hide
                 && (
                     settings.engine.enabled
                     || currentNode.state.classification

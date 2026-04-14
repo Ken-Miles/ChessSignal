@@ -2,7 +2,11 @@ import React from "react";
 
 import { stringifyEvaluation } from "shared/lib/utils/chess";
 import useAnalysisBoardStore from "@analysis/stores/AnalysisBoardStore";
-import { classificationImages } from "@analysis/constants/classifications";
+import useSettingsStore from "@/stores/SettingsStore";
+import {
+    classificationImages,
+    shouldShowMoveClassificationIcon
+} from "@analysis/constants/classifications";
 
 import EvaluationGraphPoint from "./Point";
 import * as styles from "./EvaluationGraph.module.css";
@@ -13,6 +17,9 @@ interface TooltipRendererProps {
 
 function TooltipRenderer({ dataPoint }: TooltipRendererProps) {
     const boardFlipped = useAnalysisBoardStore(state => state.boardFlipped);
+    const hideClassifications = useSettingsStore(
+        state => state.settings.analysis.classifications.hide
+    );
 
     const perspectiveEvaluation = {
         ...dataPoint.evaluation,
@@ -21,7 +28,10 @@ function TooltipRenderer({ dataPoint }: TooltipRendererProps) {
 
     return <div className={styles.tooltip}>
         <div className={styles.tooltipEvaluation}>
-            {dataPoint.state.classification
+            {shouldShowMoveClassificationIcon(
+                dataPoint.state.classification,
+                hideClassifications
+            )
                 && <img
                     src={classificationImages[dataPoint.state.classification]}
                     height={25}

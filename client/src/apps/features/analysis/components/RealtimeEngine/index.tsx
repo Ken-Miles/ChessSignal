@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Chess } from "chess.js";
 import { range } from "lodash-es";
 
-import { EngineLine } from "shared/types/game/position/EngineLine";
+import { EngineLine, pickEngineLines } from "shared/types/game/position/EngineLine";
 import EngineVersion from "shared/constants/EngineVersion";
 import LogMessage from "@/components/common/LogMessage";
 import Engine from "@analysis/lib/engine";
@@ -22,6 +22,8 @@ function RealtimeEngine({
     style,
     initialPosition,
     playedUciMoves,
+    cachedEngineLines = [],
+    shouldEvaluate = true,
     config,
     onEngineLines,
     onMoveEvaluations,
@@ -118,35 +120,37 @@ function RealtimeEngine({
 
     const lineSourceVersion = resolvedEngineVersion || hydratedConfig.version;
 
-    // Compute displayed lines directly from live engine output.
-    const displayedLines = useMemo(() => {
-        const sourceMatched = realtimeEngineLines.filter(
-            line => line.source == lineSourceVersion
-        );
-
-        const candidateLines = sourceMatched.length > 0
-            ? sourceMatched
-            : realtimeEngineLines;
-
-        const topDepth = candidateLines.reduce(
-            (maxDepth, line) => Math.max(maxDepth, line.depth || 0),
-            0
-        );
-
-        const depthFiltered = topDepth > 0
-            ? candidateLines.filter(line => (line.depth || 0) == topDepth)
-            : candidateLines;
-
-        const latestByIndex = new Map<number, EngineLine>();
-        for (const line of depthFiltered) {
-            if (line.index <= 0) continue;
-            latestByIndex.set(line.index, line);
+    const displayedCacheLines = useMemo(() => pickEngineLines(
+        position,
+        cachedEngineLines,
+        {
+            count: hydratedConfig.lines,
+            depth: hydratedConfig.depth,
+            source: lineSourceVersion
         }
+    ), [
+        position,
+        cachedEngineLines,
+        hydratedConfig.lines,
+        hydratedConfig.depth,
+        lineSourceVersion
+    ]);
 
-        return Array.from(latestByIndex.values())
-            .sort((a, b) => a.index - b.index)
-            .slice(0, hydratedConfig.lines);
-    }, [realtimeEngineLines, hydratedConfig.lines, lineSourceVersion]);
+    const displayedLocalLines = useMemo(() => pickEngineLines(
+        position,
+        realtimeEngineLines,
+        {
+            count: hydratedConfig.lines,
+            source: lineSourceVersion
+        }
+    ) || [], [
+        position,
+        realtimeEngineLines,
+        hydratedConfig.lines,
+        lineSourceVersion
+    ]);
+
+    const displayedLines = displayedCacheLines || displayedLocalLines;
 
     useEffect(() => (
         onEngineLines?.(displayedLines)
@@ -239,12 +243,18 @@ function RealtimeEngine({
             setRealtimeEngineLines([]);
             setMoveEvaluations([]);
 
+            if (!shouldEvaluate || displayedCacheLines) {
+                return;
+            }
+
             evaluationDelayRef.current = setTimeout(evaluatePosition, 400);
         }
 
-        queueEvaluation();
+        void queueEvaluation();
     }, [
         position,
+        shouldEvaluate,
+        displayedCacheLines,
         engine,
         hydratedConfig.depth,
         hydratedConfig.lines,
@@ -275,7 +285,7 @@ function RealtimeEngine({
             }
         </React.Fragment>)}
 
-        {(!!engine && !evaluationError)
+        {(!!engine && !evaluationError && shouldEvaluate && !displayedCacheLines)
             && range(
                 Math.max(0, expectedLineCount - displayedLines.length)
             ).map((_, index) => <React.Fragment

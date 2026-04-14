@@ -7,74 +7,23 @@ import EngineVersion from "shared/constants/EngineVersion";
 import { lichessCastlingMoves } from "shared/constants/utils";
 
 type CloudEvaluation = components["schemas"]["CloudEval"];
-const DISABLE_CLOUD_EVALUATION = true;
-const CLOUD_EVAL_TIMEOUT_MS = 2500;
-const CLOUD_TIMEOUT_BACKOFF_INITIAL_MS = 5000;
-const CLOUD_TIMEOUT_BACKOFF_MAX_MS = 60000;
-const unavailableCloudEvalFens = new Set<string>();
-let cloudBackoffUntilMs = 0;
-let cloudBackoffMs = CLOUD_TIMEOUT_BACKOFF_INITIAL_MS;
 
 async function getCloudEvaluation(
     fen: string,
     targetCount = 1
-): Promise<EngineLine[] | null> {
-    if (DISABLE_CLOUD_EVALUATION) {
-        return [];
-    }
-
-    if (unavailableCloudEvalFens.has(fen)) {
-        return null;
-    }
-
-    if (Date.now() < cloudBackoffUntilMs) {
-        return [];
-    }
-
-    const queryParams = new URLSearchParams({
-        fen,
-        multiPv: targetCount.toString()
-    });
-
-    const abortController = new AbortController();
-    const timeoutId = window.setTimeout(() => {
-        abortController.abort();
-    }, CLOUD_EVAL_TIMEOUT_MS);
-
+): Promise<EngineLine[]> {
     let cloudResponse: Response;
 
     try {
         cloudResponse = await fetch(
-            `https://lichess.org/api/cloud-eval?${queryParams.toString()}`,
-            { signal: abortController.signal }
+            "https://lichess.org/api/cloud-eval"
+            + `?fen=${fen}&multiPv=${targetCount}`
         );
-    } catch (error) {
-        // Network/CORS failures should not block local evaluation fallback.
-        window.clearTimeout(timeoutId);
-
-        if ((error as DOMException).name == "AbortError") {
-            cloudBackoffUntilMs = Date.now() + cloudBackoffMs;
-            cloudBackoffMs = Math.min(
-                cloudBackoffMs * 2,
-                CLOUD_TIMEOUT_BACKOFF_MAX_MS
-            );
-        }
-
+    } catch {
         return [];
     }
 
-    window.clearTimeout(timeoutId);
-    cloudBackoffMs = CLOUD_TIMEOUT_BACKOFF_INITIAL_MS;
-    cloudBackoffUntilMs = 0;
-
     if (!cloudResponse.ok) {
-        if (cloudResponse.status == 404) {
-            // Only disable cloud eval for this exact position.
-            unavailableCloudEvalFens.add(fen);
-            return null;
-        }
-
-        // Non-200 responses (for example 429) should not fail the full run.
         return [];
     }
 
@@ -93,10 +42,6 @@ async function getCloudEvaluation(
     const engineLines: EngineLine[] = [];
 
     for (const variation of cloudEvaluation.pvs) {
-        if (typeof variation.moves != "string") {
-            continue;
-        }
-
         const variationBoard = new Chess(fen);
 
         const lineMoves: Move[] = [];

@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { uniqWith } from "lodash-es";
 
@@ -20,10 +20,12 @@ function RealtimeEngineArea() {
 
     const {
         currentStateTreeNode,
+        currentStateTreeNodeUpdate,
         dispatchCurrentNodeUpdate
     } = useAnalysisBoardStore(
         useShallow(state => ({
             currentStateTreeNode: state.currentStateTreeNode,
+            currentStateTreeNodeUpdate: state.currentStateTreeNodeUpdate,
             dispatchCurrentNodeUpdate: state.dispatchCurrentNodeUpdate
         }))
     );
@@ -41,9 +43,24 @@ function RealtimeEngineArea() {
             .map(node => node.state.move!.uci)
     ), [currentStateTreeNode]);
 
+    const cachedEngineLines = currentStateTreeNode.state.engineLines;
+    const shouldEvaluate = cachedEngineLines.length == 0;
+
+    // Keep board consumers in sync with cached lines for the selected node.
+    useEffect(() => {
+        setDisplayedEngineLines(cachedEngineLines);
+    }, [
+        currentStateTreeNode,
+        currentStateTreeNodeUpdate,
+        cachedEngineLines,
+        setDisplayedEngineLines
+    ]);
+
     return <RealtimeEngine
         initialPosition={initialPosition}
         playedUciMoves={playedUciMoves}
+        cachedEngineLines={cachedEngineLines}
+        shouldEvaluate={shouldEvaluate}
         config={{
             ...settings.analysis.engine,
             depth: settings.analysis.engine.depth,
