@@ -44,8 +44,9 @@ function pruneCache(cache: Record<string, LoadedGameCacheEntry>) {
 export function getLoadedGameCacheKey(input: {
     sourceKey: string;
     gameInput: string;
+    engineVersion: string;
 }) {
-    return `${input.sourceKey}:${input.gameInput.trim()}`;
+    return `${input.sourceKey}:${input.engineVersion}:${input.gameInput.trim()}`;
 }
 
 export function getCachedLoadedGame(cacheKey: string): AnalysedGame | undefined {

@@ -66,8 +66,12 @@ function AnalysisProgress() {
     ]);
 
     const statusTitle = getStatusTitle(analysisStatus);
+    const isBackgroundCompletion = analysisStatus == AnalysisStatus.AWAITING_CAPTCHA
+        && evaluationProgress >= 1
+        && !analysisError
+        && !analysisCaptchaError;
 
-    if (analysisStatus == AnalysisStatus.INACTIVE) return null;
+    if (analysisStatus == AnalysisStatus.INACTIVE || isBackgroundCompletion) return null;
 
     return <ProgressReporter
         progress={evaluationProgress}

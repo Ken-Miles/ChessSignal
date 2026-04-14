@@ -13,6 +13,11 @@ const sharedArrayBufferRequiredVersions = new Set<EngineVersion>([
     EngineVersion.STOCKFISH_18
 ]);
 
+export function isEngineVersionCompatible(version: EngineVersion) {
+    return !sharedArrayBufferRequiredVersions.has(version)
+        || supportsSharedArrayBuffer();
+}
+
 const requiredWasmAssets: Partial<Record<EngineVersion, string[]>> = {
     [EngineVersion.STOCKFISH_17_LITE]: [
         "/engines/stockfish/17/stockfish-17-lite-single.wasm"
@@ -61,13 +66,6 @@ export async function isEngineVersionAvailable(
     }
 
     const availabilityPromise = (async () => {
-        if (
-            sharedArrayBufferRequiredVersions.has(version)
-            && !supportsSharedArrayBuffer()
-        ) {
-            return false;
-        }
-
         const workerExists = await assetExists(`/engines/${version}`);
         if (!workerExists) {
             return false;
@@ -95,6 +93,21 @@ export async function findFirstAvailableEngineVersion(
 ): Promise<EngineVersion | undefined> {
     for (const version of versions) {
         if (await isEngineVersionAvailable(version)) {
+            return version;
+        }
+    }
+
+    return undefined;
+}
+
+export async function findFirstCompatibleEngineVersion(
+    versions: EngineVersion[]
+): Promise<EngineVersion | undefined> {
+    for (const version of versions) {
+        if (
+            await isEngineVersionAvailable(version)
+            && isEngineVersionCompatible(version)
+        ) {
             return version;
         }
     }

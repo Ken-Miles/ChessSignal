@@ -1,13 +1,16 @@
 import React, { lazy } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
 import AnalysisTab from "@analysis/constants/AnalysisTab";
+import { GameSource } from "@/components/chess/GameSelector/GameSource";
 import useSettingsStore from "@/stores/SettingsStore";
 import useAnalysisGameStore from "@analysis/stores/AnalysisGameStore";
 import useAnalysisBoardStore from "@analysis/stores/AnalysisBoardStore";
 import useAnalysisTabStore from "@analysis/stores/AnalysisTabStore";
 import ClassifiedMoveCard from "@analysis/components/report/ClassifiedMoveCard";
 import StateTreeTraverser from "@/components/chess/StateTreeTraverser";
+import { analysisSelectionUrlKeys, updateAnalysisSelectionUrl } from "@analysis/lib/selectionUrl";
 
 import AnalysisProgress from "./AnalysisProgress";
 import RealtimeEngineArea from "./RealtimeEngineArea";
@@ -27,6 +30,7 @@ function AnalysisPanel({
     style
 }: AnalysisPanelProps) {
     const { t } = useTranslation("analysis");
+    const [ searchParams, setSearchParams ] = useSearchParams();
 
     const settings = useSettingsStore(state => state.settings.analysis);
 
@@ -39,6 +43,22 @@ function AnalysisPanel({
     );
 
     const { activeTab, setActiveTab } = useAnalysisTabStore();
+
+    const handleStartReview = () => {
+        const chessComSource = useAnalysisGameStore.getState().analysisGame.source?.chessCom;
+
+        if (chessComSource?.liveGameId && !chessComSource.isLiveOngoing && chessComSource.gameUrl) {
+            setSearchParams(updateAnalysisSelectionUrl(searchParams, {
+                sourceKey: GameSource.CHESS_COM.key,
+                fieldInput: chessComSource.gameUrl,
+                perspective: (searchParams.get(analysisSelectionUrlKeys.perspective) as "white" | "black" | "auto" | null) || undefined
+            }));
+
+            return;
+        }
+
+        setActiveTab(AnalysisTab.ANALYSIS);
+    };
     
     return <div
         className={`${styles.wrapper} ${className}`}
@@ -116,9 +136,7 @@ function AnalysisPanel({
                     ? <div className={styles.reviewLayout}>
                         <div className={styles.reportSection}>
                             <GameReport
-                                onStartReview={() => {
-                                    setActiveTab(AnalysisTab.ANALYSIS);
-                                }}
+                                onStartReview={handleStartReview}
                             />
                         </div>
                     </div>

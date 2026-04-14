@@ -4,10 +4,7 @@ import AnalysedGame from "shared/types/game/AnalysedGame";
 import EngineVersion from "shared/constants/EngineVersion";
 import AnalysisStatus from "@analysis/constants/AnalysisStatus";
 import AnalysisTab from "@analysis/constants/AnalysisTab";
-import {
-    findFirstAvailableEngineVersion,
-    isEngineVersionAvailable
-} from "@analysis/lib/engineVersionAvailability";
+import { findFirstCompatibleEngineVersion } from "@analysis/lib/engineVersionAvailability";
 import useSettingsStore from "@/stores/SettingsStore";
 import useAnalysisBoardStore from "@analysis/stores/AnalysisBoardStore";
 import useAnalysisProgressStore from "@analysis/stores/AnalysisProgressStore";
@@ -21,15 +18,12 @@ function useEvaluateGame() {
         state => state.settings.analysis.engine
     );
 
-    const setSettings = useSettingsStore(
-        state => state.setSettings
-    );
-
     const dispatchCurrentNodeUpdate = useAnalysisBoardStore(
         state => state.dispatchCurrentNodeUpdate
     );
 
     const {
+        setEvaluationController,
         setAnalysisStatus,
         setEvaluationProgress,
         setAnalysisError
@@ -40,32 +34,24 @@ function useEvaluateGame() {
     );
 
     async function evaluateGame(analysisGame: AnalysedGame) {
-        let selectedEngineVersion = settings.version;
+        const selectedEngineVersion = await findFirstCompatibleEngineVersion([
+            settings.version
+        ]) || await findFirstCompatibleEngineVersion([
+            EngineVersion.STOCKFISH_18_LITE,
+            EngineVersion.STOCKFISH_18_LITE_SINGLE,
+            EngineVersion.STOCKFISH_18_SINGLE,
+            EngineVersion.STOCKFISH_18_ASM,
+            EngineVersion.STOCKFISH_17_LITE,
+            EngineVersion.STOCKFISH_17,
+            EngineVersion.STOCKFISH_17_ASM
+        ]);
 
-        const selectedVersionAvailable = await isEngineVersionAvailable(
-            selectedEngineVersion
-        );
+        if (!selectedEngineVersion) {
+            setAnalysisStatus(AnalysisStatus.AWAITING_CAPTCHA);
+            setAnalysisError(t("analysisError"));
 
-        if (!selectedVersionAvailable) {
-            const fallbackVersion = await findFirstAvailableEngineVersion([
-                EngineVersion.STOCKFISH_18_ASM,
-                EngineVersion.STOCKFISH_17_ASM
-            ]);
-
-            if (!fallbackVersion) {
-                setAnalysisStatus(AnalysisStatus.AWAITING_CAPTCHA);
-                setAnalysisError(t("analysisError"));
-
-                const noopController = new AbortController();
-                return noopController;
-            }
-
-            selectedEngineVersion = fallbackVersion;
-
-            setSettings(draft => {
-                draft.analysis.engine.version = fallbackVersion;
-                return draft;
-            });
+            const noopController = new AbortController();
+            return noopController;
         }
 
         setAnalysisStatus(AnalysisStatus.EVALUATING);
@@ -90,13 +76,16 @@ function useEvaluateGame() {
         });
 
         evaluator.evaluate()
-            .then(() => setAnalysisStatus(
-                AnalysisStatus.AWAITING_CAPTCHA
-            ))
+            .then(() => {
+                setEvaluationProgress(1);
+                setEvaluationController();
+                setAnalysisStatus(AnalysisStatus.AWAITING_CAPTCHA);
+            })
             .catch(err => {
                 if (err == "abort") return;
 
                 console.error(err);
+                setEvaluationController();
                 setAnalysisError(t("analysisError"));
             });
 

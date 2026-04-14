@@ -81,6 +81,9 @@ export function pickEngineLines(
         .sort((a, b) => b - a)
     );
 
+    const positiveDepths = depths.filter(depth => depth > 0);
+    const fallbackDepths = depths.filter(depth => depth == 0);
+
     function findLineSet(depth: number, source: EngineVersion) {
         const lineSet: EngineLine[] = [];
 
@@ -98,7 +101,24 @@ export function pickEngineLines(
         return lineSet;
     }
 
-    for (const depth of depths) {
+    for (const depth of positiveDepths) {
+        const lineSets = Object.values(EngineVersion)
+            .filter(source => (
+                source == EngineVersion.LICHESS_CLOUD
+                || (!targetSource || source == targetSource)
+            ))
+            .map(source => findLineSet(depth, source));
+
+        const qualifyingLineSet = maxBy(
+            lineSets, lineSet => lineSet.length
+        );
+
+        if (qualifyingLineSet && qualifyingLineSet.length > 0) {
+            return qualifyingLineSet.sort((a, b) => a.index - b.index);
+        }
+    }
+
+    for (const depth of fallbackDepths) {
         const lineSets = Object.values(EngineVersion)
             .filter(source => (
                 source == EngineVersion.LICHESS_CLOUD

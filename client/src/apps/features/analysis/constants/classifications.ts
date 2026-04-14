@@ -37,32 +37,32 @@ export const errorClassificationIcon = iconClassificationsError;
 
 export const classificationColours = {
     [Classification.BRILLIANT]: "#1baaa6",
+    //[Classification.RISKY]: "#8983ac"
     [Classification.CRITICAL]: "#749BBF",
     [Classification.BEST]: "#98bc49",
     [Classification.EXCELLENT]: "#98bc49",
     [Classification.OKAY]: "#97af8b",
+    [Classification.THEORY]: "#a88764",
+    [Classification.FORCED]: "#97af8b",
     [Classification.INACCURACY]: "#f4bf44",
     [Classification.MISTAKE]: "#e28c28",
-    [Classification.BLUNDER]: "#c93230",
-    [Classification.FORCED]: "#97af8b",
-    [Classification.THEORY]: "#a88764",
-    //[Classification.RISKY]: "#8983ac"
-    [Classification.MISS]: "#ed7f6f"
+    [Classification.MISS]: "#ed7f6f",
+    [Classification.BLUNDER]: "#c93230"
 };
 
 export const classificationNames = {
     [Classification.BRILLIANT]: "classifications.brilliant",
-    [Classification.CRITICAL]: "classifications.great",
+    [Classification.CRITICAL]: "classifications.critical", // great
     [Classification.BEST]: "classifications.best",
     [Classification.EXCELLENT]: "classifications.excellent",
-    [Classification.OKAY]: "classifications.okay",
+    [Classification.OKAY]: "classifications.okay", // good
+    [Classification.THEORY]: "classifications.theory", // book
+    [Classification.FORCED]: "classifications.forced", // not shown on chess.com
     [Classification.INACCURACY]: "classifications.inaccuracy",
     [Classification.MISTAKE]: "classifications.mistake",
-    [Classification.BLUNDER]: "classifications.blunder",
-    [Classification.FORCED]: "classifications.forced",
-    [Classification.THEORY]: "classifications.theory",
+    [Classification.MISS]: "classifications.miss",
+    [Classification.BLUNDER]: "classifications.blunder"
     //[Classification.RISKY]: "classifications.risky"
-    [Classification.MISS]: "classifications.miss"
 };
 
 export const inalterableClassifications = [

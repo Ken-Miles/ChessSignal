@@ -17,10 +17,10 @@ import iconSettings from "@assets/img/interface/settings.svg";
 
 const engineVersionLabels: Record<EngineVersion, string> = {
     [EngineVersion.LICHESS_CLOUD]: "Lichess Cloud",
-    [EngineVersion.STOCKFISH_17_ASM]: "Stockfish 17 (Compatibility)",
+    [EngineVersion.STOCKFISH_17_ASM]: "Stockfish 17 ASM",
     [EngineVersion.STOCKFISH_17_LITE]: "Stockfish 17 Lite",
     [EngineVersion.STOCKFISH_17]: "Stockfish 17",
-    [EngineVersion.STOCKFISH_18_ASM]: "Stockfish 18 (Compatibility)",
+    [EngineVersion.STOCKFISH_18_ASM]: "Stockfish 18 ASM",
     [EngineVersion.STOCKFISH_18_LITE]: "Stockfish 18 Lite",
     [EngineVersion.STOCKFISH_18_LITE_SINGLE]: "Stockfish 18 Lite Single",
     [EngineVersion.STOCKFISH_18]: "Stockfish 18",

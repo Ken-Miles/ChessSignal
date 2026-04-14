@@ -2,6 +2,7 @@ import { CSSProperties } from "react";
 
 import { EngineLine } from "shared/types/game/position/EngineLine";
 import EngineVersion from "shared/constants/EngineVersion";
+import { MoveEvaluation } from "@analysis/lib/evaluateMovesParallel";
 
 interface RealtimeEngineProps {
     className?: string;
@@ -15,8 +16,8 @@ interface RealtimeEngineProps {
         threads?: number;
         timeLimit?: number;
     };
-    cachedEngineLines?: EngineLine[];
     onEngineLines?: (lines: EngineLine[]) => void;
+    onMoveEvaluations?: (moveEvals: MoveEvaluation[]) => void;
     onEvaluationStart?: () => void;
     onEvaluationComplete?: (lines: EngineLine[]) => void;
 }

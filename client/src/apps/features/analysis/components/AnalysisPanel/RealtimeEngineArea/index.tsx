@@ -20,12 +20,10 @@ function RealtimeEngineArea() {
 
     const {
         currentStateTreeNode,
-        currentEngineLines,
         dispatchCurrentNodeUpdate
     } = useAnalysisBoardStore(
         useShallow(state => ({
             currentStateTreeNode: state.currentStateTreeNode,
-            currentEngineLines: state.currentStateTreeNode.state.engineLines,
             dispatchCurrentNodeUpdate: state.dispatchCurrentNodeUpdate
         }))
     );
@@ -57,7 +55,6 @@ function RealtimeEngineArea() {
                         : undefined
                 )
         }}
-        cachedEngineLines={currentEngineLines}
         onEngineLines={setDisplayedEngineLines}
         onEvaluationComplete={lines => {
             currentStateTreeNode.state.engineLines = uniqWith(

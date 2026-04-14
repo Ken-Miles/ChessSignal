@@ -2,11 +2,15 @@ import React, { useMemo } from "react";
 import { Move } from "chess.js";
 
 import { addChildMove } from "shared/types/game/position/StateTreeNode";
+import { StateTreeNode } from "shared/types/game/position/StateTreeNode";
 import useSettingsStore from "@/stores/SettingsStore";
 import useAnalysisGameStore from "@analysis/stores/AnalysisGameStore";
 import useAnalysisBoardStore from "@analysis/stores/AnalysisBoardStore";
+import useAnalysisTabStore from "@analysis/stores/AnalysisTabStore";
 import Board from "@analysis/components/Board";
 import playBoardSound from "@/lib/boardSounds";
+import AnalysisTab from "@analysis/constants/AnalysisTab";
+import { getGameOutcomeEffect } from "@analysis/lib/gameOutcome";
 
 import useEvaluation from "./useEvaluation";
 import useSuggestionArrows from "./useSuggestionArrows";
@@ -21,6 +25,8 @@ function BoardArea() {
         gameAnalysisOpen,
         setGameAnalysisOpen
     } = useAnalysisGameStore();
+
+    const activeTab = useAnalysisTabStore(state => state.activeTab);
 
     const {
         currentStateTreeNode,
@@ -49,21 +55,29 @@ function BoardArea() {
         darkSquareColour: theme.board.darkSquareColour,
         boardTexture: theme.board.texture,
         pieceSet: theme.piece,
-        preset: theme.preset
+        preset: theme.preset,
+        coordinatesPlacement: theme.board.coordinatesPlacement
     }), [
         theme.board.lightSquareColour,
         theme.board.darkSquareColour,
         theme.board.texture,
         theme.piece,
-        theme.preset
+        theme.preset,
+        theme.board.coordinatesPlacement
     ]);
+
+    const outcomeEffect = useMemo(() => (
+        activeTab == AnalysisTab.REPORT
+            ? getGameOutcomeEffect(analysisGame)
+            : undefined
+    ), [activeTab, analysisGame]);
 
     function addMove(move: Move) {
         if (!gameAnalysisOpen) {
             setGameAnalysisOpen(true);
         }
 
-        setCurrentStateTreeNode(prev => {
+        setCurrentStateTreeNode((prev: StateTreeNode) => {
             const createdNode = addChildMove(prev, move.san);
             playBoardSound(createdNode);
 
@@ -90,6 +104,7 @@ function BoardArea() {
         flipped={boardFlipped}
         evaluation={evaluation}
         arrows={suggestionArrows}
+        outcomeEffect={outcomeEffect}
         piecesDraggable={!autoplayEnabled}
         enableClassifications={!settings.classifications.hide}
         onAddMove={addMove}

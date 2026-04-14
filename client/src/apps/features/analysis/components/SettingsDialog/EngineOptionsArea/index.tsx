@@ -24,7 +24,7 @@ const engineVersionOptions: EngineVersionOption[] = [
         value: EngineVersion.STOCKFISH_18_LITE
     },
     {
-        label: "Stockfish 18 Lite Single (Lower Memory Usage)",
+        label: "Stockfish 18 Lite Single",
         value: EngineVersion.STOCKFISH_18_LITE_SINGLE
     },
     {
@@ -32,7 +32,7 @@ const engineVersionOptions: EngineVersionOption[] = [
         value: EngineVersion.STOCKFISH_18_ASM
     },
     {
-        label: "Stockfish 18 Single (113 MB)",
+        label: "Stockfish 18 Single",
         value: EngineVersion.STOCKFISH_18_SINGLE
     },
     {
@@ -44,7 +44,7 @@ const engineVersionOptions: EngineVersionOption[] = [
         value: EngineVersion.STOCKFISH_17_LITE
     },
     {
-        label: "Stockfish 17 ASM (Compatibility)",
+        label: "Stockfish 17 ASM",
         value: EngineVersion.STOCKFISH_17_ASM
     },
     {
