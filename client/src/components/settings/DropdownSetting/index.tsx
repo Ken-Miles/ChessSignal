@@ -33,10 +33,6 @@ function DropdownSetting<Option extends BaseDropdownOption>(
 ) {
     const { t } = useTranslation("common");
 
-    const portalTarget = typeof document == "undefined"
-        ? undefined
-        : document.body;
-
     function getMenuOffset() {
         const dropdownWidth = (
             props.dropdownStyle?.width || defaultStyles.dropdown.width
@@ -128,8 +124,7 @@ function DropdownSetting<Option extends BaseDropdownOption>(
         }}
         maxMenuHeight={9999}
         menuPlacement="auto"
-        menuPortalTarget={portalTarget}
-        menuPosition={props.menuPositionStrategy || "fixed"}
+        menuPosition={props.menuPositionStrategy || "absolute"}
     />;
 }
 

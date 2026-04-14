@@ -16,6 +16,7 @@ interface ChessComLiveGameMetaResponse {
 
 const router = Router();
 const CHESS_COM_TIMEOUT_MS = 10_000;
+const isProductionMode = process.env.NODE_ENV == "production";
 const allowedForwardRequestHeaders = new Set([
     "accept",
     "accept-language",
@@ -78,6 +79,10 @@ async function fetchWithTimeout(url: string, headers: Record<string, string>) {
 }
 
 router.get("/chess-com/callback/:gameType/game/:gameId", async (req, res) => {
+    if (isProductionMode) {
+        return res.sendStatus(StatusCodes.NOT_FOUND);
+    }
+
     const gameType = req.params.gameType as ChessComGameType;
     const gameId = req.params.gameId;
 
@@ -109,6 +114,10 @@ router.get("/chess-com/callback/:gameType/game/:gameId", async (req, res) => {
 });
 
 router.get("/chess-com/live/game/:liveGameId", async (req, res) => {
+    if (isProductionMode) {
+        return res.sendStatus(StatusCodes.NOT_FOUND);
+    }
+
     const liveGameId = req.params.liveGameId;
 
     if (!liveGameId) {

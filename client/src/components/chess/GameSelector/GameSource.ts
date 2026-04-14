@@ -16,6 +16,8 @@ export interface GameSourceData {
     selectorButton?: GameSelectorButton;
 }
 
+const isProductionMode = process.env.NODE_ENV == "production";
+
 export const GameSource: Record<GameSourceType, GameSourceData> = {
     PGN: {
         key: "PGN",
@@ -47,14 +49,29 @@ export const GameSource: Record<GameSourceType, GameSourceData> = {
     }
 };
 
+export function getSelectableGameSources() {
+    return Object.values(GameSource).filter(source => !(
+        isProductionMode
+        && source.key == GameSource.CHESS_COM_LIVE.key
+    ));
+}
+
 export function getGameSource(
     key: string,
     defaultKey: GameSourceType = GameSource.PGN.key
 ) {
+    const resolvedKey = isProductionMode && key == GameSource.CHESS_COM_LIVE.key
+        ? GameSource.CHESS_COM.key
+        : key;
+
+    const resolvedDefaultKey = isProductionMode && defaultKey == GameSource.CHESS_COM_LIVE.key
+        ? GameSource.CHESS_COM.key
+        : defaultKey;
+
     return (
-        Object.values(GameSource).find(
-            source => source.key == key
+        getSelectableGameSources().find(
+            source => source.key == resolvedKey
         )
-        || GameSource[defaultKey]
+        || GameSource[resolvedDefaultKey]
     );
 }

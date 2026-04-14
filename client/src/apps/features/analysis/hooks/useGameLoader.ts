@@ -5,22 +5,21 @@ import { useShallow } from "zustand/react/shallow";
 import AnalysedGame from "shared/types/game/AnalysedGame";
 import { EngineLine } from "shared/types/game/position/EngineLine";
 import { Move } from "shared/types/game/position/Move";
-import { getNodeChain, StateTreeNode } from "shared/types/game/position/StateTreeNode";
+import { StateTreeNode } from "shared/types/game/position/StateTreeNode";
 import useAnalysisGameStore from "../stores/AnalysisGameStore";
 import useAnalysisBoardStore from "../stores/AnalysisBoardStore";
 import useRealtimeEngineStore from "../stores/RealtimeEngineStore";
 import { getArchivedGame } from "@/lib/gameArchive";
 import { GameSource } from "@/components/chess/GameSelector/GameSource";
+import useSettingsStore from "@/stores/SettingsStore";
 import {
     analysisSelectionUrlKeyList,
-    getAnalysisSelectionFromUrl,
-    updateAnalysisSelectionUrl
+    getAnalysisSelectionFromUrl
 } from "@analysis/lib/selectionUrl";
 import parsePgn from "@/lib/games/pgn";
 import parseFenString from "@/lib/games/fen";
 import parseStateTree from "shared/lib/stateTree/parse";
 import {
-    buildChessComGameUrl,
     getChessComGame,
     isChessComProxyUnavailableStatus,
     pollChessComLiveGame
@@ -28,14 +27,37 @@ import {
 import useEvaluateGame from "./useEvaluateGame";
 import useAnalysisProgressStore from "../stores/AnalysisProgressStore";
 import {
-    clearCachedLoadedGame,
     getCachedLoadedGame,
     getLoadedGameCacheKey,
     setCachedLoadedGame
 } from "@/lib/loadedGameCache";
 
-function hasIncompleteAnalysis(game: AnalysedGame) {
-    const mainlineNodes = getNodeChain(game.stateTree).slice(1);
+function hasIncompleteAnalysis(
+    game: AnalysedGame
+) {
+    const mainlineNodes: Array<{
+        state: {
+            engineLines: EngineLine[];
+            classification?: unknown;
+            accuracy?: unknown;
+        };
+    }> = [];
+
+    let current: StateTreeNode | undefined = game.stateTree;
+
+    while (current) {
+        if (current != game.stateTree) {
+            mainlineNodes.push(current as unknown as {
+                state: {
+                    engineLines: EngineLine[];
+                    classification?: unknown;
+                    accuracy?: unknown;
+                };
+            });
+        }
+
+        current = current.children[0] as StateTreeNode | undefined;
+    }
 
     if (mainlineNodes.length == 0) {
         return false;
@@ -72,11 +94,13 @@ function copyMainlineAnalysisFields(
             break;
         }
 
+        const copiedEngineLines = cloneEngineLines(previousNode);
+
         if (
             nextNode.state.engineLines.length == 0
-            && previousNode.state.engineLines.length > 0
+            && copiedEngineLines.length > 0
         ) {
-            nextNode.state.engineLines = cloneEngineLines(previousNode);
+            nextNode.state.engineLines = copiedEngineLines;
         }
 
         if (nextNode.state.classification == undefined) {
@@ -91,8 +115,8 @@ function copyMainlineAnalysisFields(
             nextNode.state.opening = previousNode.state.opening;
         }
 
-        const previousMainline = previousNode.children[0];
-        const nextMainline = nextNode.children[0];
+        const previousMainline = previousNode.children[0] as StateTreeNode | undefined;
+        const nextMainline = nextNode.children[0] as StateTreeNode | undefined;
 
         if (!previousMainline || !nextMainline) {
             break;
@@ -107,7 +131,21 @@ function copyMainlineAnalysisFields(
     }
 }
 
+function findFinalMainlineNode(root: StateTreeNode) {
+    let current: StateTreeNode = root;
+
+    while (current.children[0]) {
+        current = current.children[0] as StateTreeNode;
+    }
+
+    return current;
+}
+
 function useGameLoader() {
+    const engineVersion = useSettingsStore(
+        state => state.settings.analysis.engine.version
+    );
+
     const [ searchParams, setSearchParams ] = useSearchParams();
     const archivedGameId = searchParams.get("game");
     const selectionSignature = analysisSelectionUrlKeyList
@@ -117,13 +155,15 @@ function useGameLoader() {
     const selectionCacheKey = selection.input
         ? getLoadedGameCacheKey({
             sourceKey: selection.sourceKey,
-            gameInput: selection.input
+            gameInput: selection.input,
+            engineVersion
         })
         : undefined;
     const archivedCacheKey = archivedGameId
         ? getLoadedGameCacheKey({
             sourceKey: "archive",
-            gameInput: archivedGameId
+            gameInput: archivedGameId,
+            engineVersion
         })
         : undefined;
 
@@ -170,6 +210,7 @@ function useGameLoader() {
 
     const evaluateGame = useEvaluateGame();
     const latestAnalysisGameRef = useRef(analysisGame);
+    const loadedEngineVersionRef = useRef(engineVersion);
 
     useEffect(() => {
         latestAnalysisGameRef.current = analysisGame;
@@ -177,6 +218,7 @@ function useGameLoader() {
 
     function persistLoadedGame(cacheKey: string | undefined, game: AnalysedGame) {
         if (!cacheKey) return;
+        if (loadedEngineVersionRef.current != engineVersion) return;
 
         setCachedLoadedGame(cacheKey, game);
     }
@@ -194,11 +236,13 @@ function useGameLoader() {
             setBoardFlipped(options.boardFlipped);
         }
 
+        loadedEngineVersionRef.current = engineVersion;
+
         setAutoplayEnabled(false);
         setGameAnalysisOpen(true);
         setAnalysisGame(game);
         setCurrentStateTreeNode(options?.jumpToEnd
-            ? (getNodeChain(game.stateTree).at(-1) || game.stateTree)
+            ? (findFinalMainlineNode(game.stateTree) || game.stateTree)
             : game.stateTree);
         setDisplayedEngineLines(game.stateTree.state.engineLines);
         persistLoadedGame(options?.cacheKey, game);
@@ -305,12 +349,12 @@ function useGameLoader() {
         ) return;
 
         persistLoadedGame(selectionCacheKey, analysisGame);
-    }, [selectionCacheKey, analysisGame, gameAnalysisOpen, selection.sourceKey]);
+    }, [selectionCacheKey, analysisGame, gameAnalysisOpen, selection.sourceKey, engineVersion]);
 
     useEffect(() => {
         loadGame();
         loadSelectionGame();
-    }, [archivedGameId, selectionSignature]);
+    }, [archivedGameId, selectionSignature, engineVersion]);
 
     useEffect(() => {
         const liveMetadata = analysisGame?.source?.chessCom;
@@ -347,37 +391,6 @@ function useGameLoader() {
             }
         };
 
-        const redirectToFinishedGame = (legacyGameId?: string, gameUrl?: string) => {
-            stopPolling();
-
-            const canonicalGameUrl = gameUrl
-                || (legacyGameId
-                    ? buildChessComGameUrl("live", legacyGameId)
-                    : undefined);
-
-            if (!canonicalGameUrl) {
-                return;
-            }
-
-            if (selectionCacheKey) {
-                clearCachedLoadedGame(selectionCacheKey);
-            }
-
-            const replayCacheKey = getLoadedGameCacheKey({
-                sourceKey: GameSource.CHESS_COM.key,
-                gameInput: canonicalGameUrl
-            });
-            clearCachedLoadedGame(replayCacheKey);
-
-            const nextSearchParams = updateAnalysisSelectionUrl(searchParams, {
-                sourceKey: GameSource.CHESS_COM.key,
-                fieldInput: canonicalGameUrl,
-                perspective: selection.perspective
-            });
-
-            setSearchParams(nextSearchParams);
-        };
-
         const pollLiveGame = async () => {
             if (pollingStopped) {
                 return;
@@ -399,7 +412,7 @@ function useGameLoader() {
                     return;
                 }
 
-                redirectToFinishedGame(liveMetadata.legacyGameId, liveMetadata.gameUrl);
+                stopPolling();
                 return;
             }
 
@@ -422,10 +435,24 @@ function useGameLoader() {
                 }
 
                 if (isFinishedLiveGame) {
-                    redirectToFinishedGame(
-                        liveGameResponse.legacyGameId || liveMetadata.legacyGameId,
-                        liveGameResponse.canonicalGameUrl || liveMetadata.gameUrl
-                    );
+                    setAnalysisGame({
+                        ...latestAnalysisGame,
+                        ...liveGameResponse.game,
+                        source: {
+                            ...latestAnalysisGame.source,
+                            chessCom: {
+                                ...latestAnalysisGame.source?.chessCom,
+                                ...liveGameResponse.game.source?.chessCom,
+                                gameUrl: liveGameResponse.canonicalGameUrl
+                                    || liveMetadata.gameUrl
+                                    || liveGameResponse.game.source?.chessCom?.gameUrl,
+                                isLiveOngoing: false
+                            }
+                        },
+                        stateTree: latestAnalysisGame.stateTree
+                    });
+
+                    stopPolling();
                 }
 
                 return;
@@ -448,10 +475,7 @@ function useGameLoader() {
             });
 
             if (isFinishedLiveGame) {
-                redirectToFinishedGame(
-                    liveGameResponse.legacyGameId || liveMetadata.legacyGameId,
-                    liveGameResponse.canonicalGameUrl || liveMetadata.gameUrl
-                );
+                stopPolling();
             }
         };
 

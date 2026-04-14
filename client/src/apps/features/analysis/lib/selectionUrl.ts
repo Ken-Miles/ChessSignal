@@ -1,9 +1,11 @@
 import { GameSource, GameSourceType, getGameSource } from "@/components/chess/GameSelector/GameSource";
 import {
     buildChessComGameUrl,
-    parseChessComGameSelection,
+    parseChessComGameSelectionFromInput,
     ChessComGameType
 } from "@/lib/games/chessCom";
+
+const isProductionMode = process.env.NODE_ENV == "production";
 
 export type AnalysisPerspective = "white" | "black" | "auto";
 
@@ -24,7 +26,7 @@ export const analysisSelectionUrlKeyList = Object.values(
 );
 
 export function isChessComGameUrl(value: string) {
-    return parseChessComGameSelection(value) != undefined;
+    return parseChessComGameSelectionFromInput(value) != undefined;
 }
 
 export function getAnalysisSelectionFromUrl(searchParams: URLSearchParams) {
@@ -33,21 +35,24 @@ export function getAnalysisSelectionFromUrl(searchParams: URLSearchParams) {
     );
     const gameInput = searchParams.get(analysisSelectionUrlKeys.gameInput) || "";
     const chessComGameId = searchParams.get(analysisSelectionUrlKeys.chessComGameId) || undefined;
-    const chessComGameType = searchParams.get(analysisSelectionUrlKeys.chessComGameType) as ChessComGameType | null;
+    const chessComGameTypeFromUrl = searchParams.get(analysisSelectionUrlKeys.chessComGameType) as ChessComGameType | null;
+    const chessComGameType = isProductionMode && chessComGameTypeFromUrl == "live"
+        ? null
+        : chessComGameTypeFromUrl;
     const chessComGameUrl = chessComGameId && chessComGameType
         ? buildChessComGameUrl(chessComGameType, chessComGameId)
         : undefined;
 
     const resolvedSourceKey = (
         sourceKeyFromUrl
-        || (parseChessComGameSelection(gameInput)?.gameType == "live"
+        || (parseChessComGameSelectionFromInput(gameInput)?.gameType == "live" && !isProductionMode
             ? GameSource.CHESS_COM_LIVE.key
             : undefined)
-        || (parseChessComGameSelection(gameInput)
+        || (parseChessComGameSelectionFromInput(gameInput)
             ? GameSource.CHESS_COM.key
             : undefined)
         || (chessComGameId
-            ? (chessComGameType == "live"
+            ? (chessComGameType == "live" && !isProductionMode
                 ? GameSource.CHESS_COM_LIVE.key
                 : GameSource.CHESS_COM.key)
             : undefined)
@@ -95,15 +100,18 @@ export function updateAnalysisSelectionUrl(
     }
 ) {
     const nextSearchParams = new URLSearchParams(searchParams);
+    const sourceKey = isProductionMode && input.sourceKey == GameSource.CHESS_COM_LIVE.key
+        ? GameSource.CHESS_COM.key
+        : input.sourceKey;
 
     for (const key of analysisSelectionUrlKeyList) {
         nextSearchParams.delete(key);
     }
 
-    if (input.sourceKey) {
+    if (sourceKey) {
         nextSearchParams.set(
             analysisSelectionUrlKeys.gameSource,
-            input.sourceKey
+            sourceKey
         );
     }
 
@@ -121,12 +129,12 @@ export function updateAnalysisSelectionUrl(
         );
     }
 
-    if (!input.sourceKey || input.fieldInput == undefined) {
+    if (!sourceKey || input.fieldInput == undefined) {
         return nextSearchParams;
     }
 
-    if (input.sourceKey == GameSource.CHESS_COM.key || input.sourceKey == GameSource.CHESS_COM_LIVE.key) {
-        const parsedGame = parseChessComGameSelection(input.fieldInput);
+    if (sourceKey == GameSource.CHESS_COM.key || sourceKey == GameSource.CHESS_COM_LIVE.key) {
+        const parsedGame = parseChessComGameSelectionFromInput(input.fieldInput);
         const canonicalGameUrl = parsedGame?.gameUrl || input.fieldInput;
 
         if (parsedGame?.gameId) {
@@ -135,12 +143,12 @@ export function updateAnalysisSelectionUrl(
                 parsedGame.gameId
             );
 
-            if (parsedGame.gameType) {
+            if (parsedGame.gameType && !(isProductionMode && parsedGame.gameType == "live")) {
                 nextSearchParams.set(
                     analysisSelectionUrlKeys.chessComGameType,
                     parsedGame.gameType
                 );
-            } else if (input.sourceKey == GameSource.CHESS_COM_LIVE.key) {
+            } else if (sourceKey == GameSource.CHESS_COM_LIVE.key && !isProductionMode) {
                 nextSearchParams.set(
                     analysisSelectionUrlKeys.chessComGameType,
                     "live"

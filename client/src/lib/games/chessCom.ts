@@ -51,6 +51,8 @@ const gameResultCodes: Record<string, GameResult | undefined> = {
 };
 
 const futureFetchError = "Date cannot be set in the future";
+const isProductionMode = process.env.NODE_ENV == "production";
+const chessComUsernamePattern = /^[a-z0-9][a-z0-9_-]{1,24}$/i;
 
 interface ChessComCallbackGameResponse {
     game: {
@@ -190,7 +192,58 @@ function parseIsoDurationMilliseconds(duration?: string) {
     return ((hours * 60 * 60) + (minutes * 60) + seconds) * 1000;
 }
 
+function normaliseChessComUsername(value: string) {
+    const trimmedValue = value.trim();
+
+    if (!chessComUsernamePattern.test(trimmedValue)) {
+        return;
+    }
+
+    return trimmedValue;
+}
+
+function getChessComLookupUsernameFromInput(input: string) {
+    const chunks = input
+        .split(/\r?\n|\|/)
+        .map(chunk => chunk.trim())
+        .filter(Boolean);
+
+    for (const chunk of chunks) {
+        if (parseChessComGameSelection(chunk)) {
+            continue;
+        }
+
+        const username = normaliseChessComUsername(chunk);
+        if (username) {
+            return username;
+        }
+    }
+
+    return;
+}
+
 export { buildChessComGameUrl };
+
+export function parseChessComGameSelectionFromInput(input: string): ChessComGameSelection | undefined {
+    const directSelection = parseChessComGameSelection(input);
+    if (directSelection) {
+        return directSelection;
+    }
+
+    const chunks = input
+        .split(/\r?\n|\|/)
+        .map(chunk => chunk.trim())
+        .filter(Boolean);
+
+    for (const chunk of chunks) {
+        const parsedChunkSelection = parseChessComGameSelection(chunk);
+        if (parsedChunkSelection) {
+            return parsedChunkSelection;
+        }
+    }
+
+    return;
+}
 
 export function parseChessComGameSelection(input: string): ChessComGameSelection | undefined {
     const trimmedInput = input.trim();
@@ -258,6 +311,148 @@ export function parseChessComGameSelection(input: string): ChessComGameSelection
     }
 
     return;
+}
+
+function parsePublicChessComGames(rawGames: any[] | undefined): Game[] {
+    if (!rawGames) return [];
+
+    return rawGames
+        .reverse()
+        .filter(game => Object
+            .keys(variantCodes)
+            .includes(game.rules)
+        )
+        .map(game => ({
+            pgn: game.pgn,
+            timeControl: (
+                timeControlCodes[game["time_class"]]
+                || TimeControl.CORRESPONDENCE
+            ),
+            variant: variantCodes[game.rules] || Variant.STANDARD,
+            initialPosition: game["initial_setup"] || STARTING_FEN,
+            source: {
+                chessCom: {
+                    gameId: parseChessComGameSelection(game.url || "")?.gameId
+                        || `${game.id}`,
+                    gameType: parseChessComGameSelection(game.url || "")?.gameType
+                        || (game["time_class"] == "daily" ? "daily" : "live"),
+                    gameUrl: parseChessComGameSelection(game.url || "")?.gameUrl
+                        || game.url
+                        || (game.id ? buildChessComGameUrl(
+                            game["time_class"] == "daily" ? "daily" : "live",
+                            `${game.id}`
+                        ) : undefined)
+                }
+            },
+            players: {
+                white: {
+                    username: game.white.username,
+                    rating: game.white.rating,
+                    result: gameResultCodes[game.white.result] || GameResult.UNKNOWN
+                },
+                black: {
+                    username: game.black.username,
+                    rating: game.black.rating,
+                    result: gameResultCodes[game.black.result] || GameResult.UNKNOWN
+                }
+            },
+            date: new Date(game["end_time"] * 1000).toISOString()
+        }));
+}
+
+async function getChessComGamesFromArchiveUrl(
+    archiveUrl: string
+): APIResponse<{ games: Game[] }> {
+    const gamesResponse = await fetch(archiveUrl);
+
+    if (gamesResponse.status == StatusCodes.NOT_FOUND) {
+        try {
+            const error = await gamesResponse.json();
+
+            if (error.message == futureFetchError) {
+                return { status: StatusCodes.OK, games: [] };
+            }
+        } catch {
+            return { status: StatusCodes.INTERNAL_SERVER_ERROR };
+        }
+    } else if (!gamesResponse.ok) {
+        return { status: gamesResponse.status };
+    }
+
+    const games = parsePublicChessComGames((await gamesResponse.json()).games);
+
+    return {
+        status: StatusCodes.OK,
+        games
+    };
+}
+
+async function getChessComArchiveUrls(
+    username: string
+): APIResponse<{ archives: string[] }> {
+    const response = await fetch(
+        `https://api.chess.com/pub/player/${username}/games/archives`
+    );
+
+    if (!response.ok) {
+        return { status: response.status };
+    }
+
+    const payload = await response.json() as {
+        archives?: string[];
+    };
+
+    return {
+        status: StatusCodes.OK,
+        archives: payload.archives || []
+    };
+}
+
+async function getChessComGameByPublicArchiveLookup(
+    username: string,
+    gameId: string
+): APIResponse<{ game: Game }> {
+    const archivesResponse = await getChessComArchiveUrls(username);
+
+    if (archivesResponse.status != StatusCodes.OK) {
+        return { status: archivesResponse.status };
+    }
+
+    const archives = archivesResponse.archives || [];
+
+    for (let index = archives.length - 1; index >= 0; index -= 1) {
+        const archiveUrl = archives[index];
+        const gamesResponse = await getChessComGamesFromArchiveUrl(archiveUrl);
+
+        if (gamesResponse.status != StatusCodes.OK) {
+            continue;
+        }
+
+        const matchingGame = gamesResponse.games?.find(game => {
+            const sourceGameId = game.source?.chessCom?.gameId;
+
+            if (sourceGameId == gameId) {
+                return true;
+            }
+
+            const parsedSelection = parseChessComGameSelection(
+                game.source?.chessCom?.gameUrl || ""
+            );
+
+            return parsedSelection?.gameId == gameId;
+        });
+
+        if (!matchingGame) {
+            continue;
+        }
+
+        return {
+            status: StatusCodes.OK,
+            game: matchingGame
+        };
+    }
+
+    return { status: StatusCodes.NOT_FOUND };
 }
 
 function decodeChessComMoveList(moveNotation: string): Pick<Move, "from" | "to" | "promotion">[] {
@@ -513,6 +708,10 @@ function buildChessComLiveGame(payload: ChessComLiveEndpointResponse): ChessComL
 export async function pollChessComLiveGame(
     liveGameId: string
 ): Promise<APIResponse<ChessComLiveGamePollResult>> {
+    if (isProductionMode) {
+        return { status: StatusCodes.NOT_FOUND };
+    }
+
     let response: Response;
 
     try {
@@ -546,6 +745,10 @@ async function fetchChessComCallbackGame(
     gameType: ChessComGameType,
     gameId: string
 ): APIResponse<{ game: Game }> {
+    if (isProductionMode) {
+        return { status: StatusCodes.NOT_FOUND };
+    }
+
     let response: Response;
 
     try {
@@ -579,11 +782,12 @@ async function fetchChessComCallbackGame(
                     gameId,
                     gameType,
                     gameUrl: buildChessComGameUrl(gameType, gameId),
+                    gameEndReason: game.gameEndReason,
                     liveGameId: gameType == "live" ? gameId : undefined,
                     isLiveOngoing: gameType == "live" && !game.isFinished,
                     clockBaseMs,
                     moveTimestampsMs
-                }
+                } as any
             },
             players: {
                 white: {
@@ -609,10 +813,23 @@ async function fetchChessComCallbackGame(
 }
 
 export async function getChessComGame(input: string): APIResponse<{ game: Game }> {
-    const parsedSelection = parseChessComGameSelection(input);
+    const parsedSelection = parseChessComGameSelectionFromInput(input);
 
     if (!parsedSelection) {
         return { status: StatusCodes.NOT_FOUND };
+    }
+
+    if (isProductionMode) {
+        const lookupUsername = getChessComLookupUsernameFromInput(input);
+
+        if (!lookupUsername) {
+            return { status: StatusCodes.BAD_REQUEST };
+        }
+
+        return await getChessComGameByPublicArchiveLookup(
+            lookupUsername,
+            parsedSelection.gameId
+        );
     }
 
     if (parsedSelection.gameType == "live") {
@@ -648,75 +865,10 @@ async function getChessComGames(
     month: number,
     year: number
 ): APIResponse<{ games: Game[] }> {
-    const gamesResponse = await fetch(
+    return await getChessComGamesFromArchiveUrl(
         `https://api.chess.com/pub/player/${username}`
         + `/games/${year}/${padDateNumber(month)}`
     );
-
-    if (gamesResponse.status == StatusCodes.NOT_FOUND) {
-        try {
-            const error = await gamesResponse.json();
-
-            if (error.message == futureFetchError)
-                return { status: StatusCodes.OK, games: [] };
-        } catch {
-            return { status: StatusCodes.INTERNAL_SERVER_ERROR };
-        }
-    } else if (!gamesResponse.ok) {
-        return { status: gamesResponse.status };
-    }
-
-    const games: any[] | undefined = (await gamesResponse.json()).games;
-    
-    if (!games) return { status: StatusCodes.OK, games: [] };
-
-    const parsedGames: Game[] = games
-        .reverse()
-        .filter(game => Object
-            .keys(variantCodes)
-            .includes(game.rules)
-        )
-        .map(game => ({
-            pgn: game.pgn,
-            timeControl: (
-                timeControlCodes[game["time_class"]]
-                || TimeControl.CORRESPONDENCE
-            ),
-            variant: variantCodes[game.rules] || Variant.STANDARD,
-            initialPosition: game["initial_setup"] || STARTING_FEN,
-            source: {
-                chessCom: {
-                    gameId: parseChessComGameSelection(game.url || "")?.gameId
-                        || `${game.id}`,
-                    gameType: parseChessComGameSelection(game.url || "")?.gameType
-                        || (game["time_class"] == "daily" ? "daily" : "live"),
-                    gameUrl: parseChessComGameSelection(game.url || "")?.gameUrl
-                        || game.url
-                        || (game.id ? buildChessComGameUrl(
-                            game["time_class"] == "daily" ? "daily" : "live",
-                            `${game.id}`
-                        ) : undefined)
-                }
-            },
-            players: {
-                white: {
-                    username: game.white.username,
-                    rating: game.white.rating,
-                    result: gameResultCodes[game.white.result] || GameResult.UNKNOWN
-                },
-                black: {
-                    username: game.black.username,
-                    rating: game.black.rating,
-                    result: gameResultCodes[game.black.result] || GameResult.UNKNOWN
-                }
-            },
-            date: new Date(game["end_time"] * 1000).toISOString()
-        }));
-
-    return {
-        status: StatusCodes.OK,
-        games: parsedGames
-    };
 }
 
 export default getChessComGames;

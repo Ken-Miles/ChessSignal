@@ -8,6 +8,7 @@ import PieceColour from "shared/constants/PieceColour";
 import {
     GameSource,
     getGameSource,
+    getSelectableGameSources,
     GameSourceType,
     GameSelectorButton
 } from "@/components/chess/GameSelector/GameSource";
@@ -22,6 +23,7 @@ import {
     isChessComGameUrl,
     updateAnalysisSelectionUrl
 } from "@analysis/lib/selectionUrl";
+import { parseChessComGameSelectionFromInput } from "@/lib/games/chessCom";
 
 import GameSelectorProps from "./GameSelectorProps";
 import * as styles from "./GameSelector.module.css";
@@ -36,6 +38,42 @@ const sourcePlaceholderKeys: Record<GameSourceType, string> = {
     CHESS_COM_LIVE: "chessComLive",
     LICHESS: "lichess"
 };
+
+const isProductionMode = process.env.NODE_ENV == "production";
+
+function parseProductionChessComFields(value: string) {
+    const chunks = value
+        .split(/\r?\n|\|/)
+        .map(chunk => chunk.trim())
+        .filter(Boolean);
+
+    let username = "";
+    let gameUrl = "";
+
+    for (const chunk of chunks) {
+        if (!gameUrl && parseChessComGameSelectionFromInput(chunk)) {
+            gameUrl = chunk;
+            continue;
+        }
+
+        if (!username) {
+            username = chunk;
+        }
+    }
+
+    return { username, gameUrl };
+}
+
+function buildProductionChessComFieldInput(username: string, gameUrl: string) {
+    const trimmedUsername = username.trim();
+    const trimmedGameUrl = gameUrl.trim();
+
+    if (trimmedUsername && trimmedGameUrl) {
+        return `${trimmedUsername} | ${trimmedGameUrl}`;
+    }
+
+    return trimmedUsername || trimmedGameUrl;
+}
 
 function GameSelector({
     style,
@@ -61,6 +99,10 @@ function GameSelector({
     const [ gameSource, setGameSource ] = useState(
         saveLocalStorage ? savedGameSource : GameSource.PGN
     );
+    const selectableGameSources = useMemo(
+        () => getSelectableGameSources(),
+        []
+    );
 
     const [
         fieldInputs,
@@ -70,6 +112,12 @@ function GameSelector({
     const currentFieldInput = useMemo(() => (
         fieldInputs[gameSource.key] || ""
     ), [gameSource.key, fieldInputs]);
+    const productionChessComFields = useMemo(
+        () => parseProductionChessComFields(currentFieldInput),
+        [currentFieldInput]
+    );
+    const showProductionChessComInlineInput = isProductionMode
+        && gameSource.key == GameSource.CHESS_COM.key;
 
     const [
         serviceGames,
@@ -151,6 +199,13 @@ function GameSelector({
             gameSource.key == GameSource.CHESS_COM.key
             && isChessComGameUrl(currentFieldInput)
         ) {
+            if (
+                isProductionMode
+                && parseProductionChessComFields(currentFieldInput).username.length == 0
+            ) {
+                return onGameSelect?.(null);
+            }
+
             return onGameSelect?.(currentFieldInput);
         }
 
@@ -200,7 +255,7 @@ function GameSelector({
             <select
                 className={styles.gameSourceSelector}
                 onChange={event => {
-                    const newGameSource = Object.values(GameSource).find(
+                    const newGameSource = selectableGameSources.find(
                         source => source.key == event.target.value
                     ) || GameSource.PGN;
 
@@ -219,7 +274,7 @@ function GameSelector({
                 }}
                 value={gameSource.key}
             >
-                {Object.values(GameSource)
+                {selectableGameSources
                     .map(source => <option key={source.key} value={source.key}>
                         {source.title}
                     </option>)
@@ -234,6 +289,7 @@ function GameSelector({
                 + sourcePlaceholderKeys[gameSource.key]
             )}
             style={{
+                display: showProductionChessComInlineInput ? "none" : undefined,
                 height: gameSource.expandField ? "170px" : "70px",
                 borderRadius: gameSource.selectorButton != undefined
                     ? undefined : "0 0 10px 10px"
@@ -251,6 +307,43 @@ function GameSelector({
                 openGameSearchMenu();
             }}
         />
+
+        {showProductionChessComInlineInput && <div className={styles.productionChessComInputArea}>
+            <div className={styles.productionChessComInputLabel}>
+                Insert your username. 
+                If providing a game URL, a username of one of the players is required.
+            </div>
+
+            <input
+                className={styles.productionChessComInput}
+                placeholder="Chess.com username"
+                value={productionChessComFields.username}
+                onChange={event => updateFieldInput(buildProductionChessComFieldInput(
+                    event.target.value,
+                    productionChessComFields.gameUrl
+                ))}
+                onKeyDown={event => {
+                    if (event.key != "Enter") return;
+
+                    event.preventDefault();
+                }}
+            />
+
+            <input
+                className={styles.productionChessComInput}
+                placeholder="Chess.com game URL or ID"
+                value={productionChessComFields.gameUrl}
+                onChange={event => updateFieldInput(buildProductionChessComFieldInput(
+                    productionChessComFields.username,
+                    event.target.value
+                ))}
+                onKeyDown={event => {
+                    if (event.key != "Enter") return;
+
+                    event.preventDefault();
+                }}
+            />
+        </div>}
 
         {gameSource.selectorButton == GameSelectorButton.SEARCH_GAMES
             && <Button
