@@ -23,10 +23,36 @@ export interface PageRenderOptions {
 const DEFAULT_OG_IMAGE = "/img/logo.svg";
 const DEFAULT_THEME_COLOR = "#47acff";
 
-function getOrigin(req: Request) {
-    if (process.env.ORIGIN) return process.env.ORIGIN;
+function isLoopbackHostname(hostname: string) {
+    return hostname == "localhost" || hostname == "127.0.0.1";
+}
 
-    return `${req.protocol}://${req.get("host")}`;
+function getOrigin(req: Request) {
+    const requestOrigin = `${req.protocol}://${req.get("host")}`;
+    const configuredOrigin = process.env.ORIGIN;
+
+    if (!configuredOrigin) return requestOrigin;
+
+    if (process.env.NODE_ENV == "production") {
+        try {
+            const configuredUrl = new URL(configuredOrigin);
+            const requestUrl = new URL(requestOrigin);
+
+            const configuredIsLoopback = isLoopbackHostname(
+                configuredUrl.hostname
+            );
+            const requestIsLoopback = isLoopbackHostname(requestUrl.hostname);
+
+            if (configuredIsLoopback && !requestIsLoopback) {
+                return requestOrigin;
+            }
+        }
+        catch {
+            return requestOrigin;
+        }
+    }
+
+    return configuredOrigin;
 }
 
 function resolveOgUrl(req: Request, meta: PageMeta) {
