@@ -266,7 +266,7 @@ function PlayerProfile({
         {showClock && hasClockTime && <div
             className={`${styles.clock} ${clockActive ? styles.clockActive : styles.clockInactive} ${playerColour == PieceColour.WHITE ? styles.clockWhite : styles.clockBlack} ${clockActive && playerColour == PieceColour.BLACK ? styles.clockBlackActive : ""} ${isLowTime ? styles.clockLowTime : ""}`}
         >
-            <span className={styles.clockIcon}>
+            <span className={`${styles.clockIcon} ${!clockActive ? styles.clockIconHidden : ""}`}>
                 <svg
                     viewBox="0 0 20 20"
                     width="20"

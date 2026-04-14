@@ -239,11 +239,11 @@
 :global(.captured-pieces-w-queen) { background-position: -50.4rem -41.7rem; }
 
 .clock {
-    display: inline-flex;
+    display: inline-grid;
+    grid-template-columns: 16px minmax(0, 1fr);
     align-items: center;
-    justify-content: space-between;
-    gap: 0;
-    min-width: 74px;
+    column-gap: 6px;
+    width: 90px;
     height: 32px;
     border-radius: 3px;
     border: 1px solid #5a6068;
@@ -258,6 +258,10 @@
     opacity: 0.92;
 }
 
+.clockIconHidden {
+    visibility: hidden;
+}
+
 .clockIcon svg {
     fill: currentcolor;
     width: 100%;
@@ -267,6 +271,8 @@
 }
 
 .clockTime {
+    justify-self: end;
+    text-align: right;
     font-size: 0.94rem;
     font-weight: 700;
     font-variant-numeric: tabular-nums;
