@@ -7,6 +7,7 @@ import Button from "@/components/common/Button";
 
 import EvaluationGraphArea from "./EvaluationGraphArea";
 import GameOverviewCard from "./GameOverviewCard";
+import GameOutcomeBanner from "./GameOutcomeBanner";
 import * as styles from "./GameReport.module.css";
 
 interface GameReportProps {
@@ -21,6 +22,8 @@ function GameReport({ onStartReview }: GameReportProps) {
     const accuracies = getGameAccuracy(analysisGame.stateTree);
     
     return <div className={styles.overviewContainer}>
+        <GameOutcomeBanner/>
+
         <EvaluationGraphArea/>
 
         <GameOverviewCard

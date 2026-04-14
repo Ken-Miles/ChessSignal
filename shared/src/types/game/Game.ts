@@ -11,6 +11,7 @@ export interface GameSourceMetadata {
         gameId?: string;
         gameType?: string;
         gameUrl?: string;
+        gameEndReason?: string;
         liveGameId?: string;
         legacyGameId?: string;
         isLiveOngoing?: boolean;
@@ -47,6 +48,7 @@ export const gameSchema = z.object({
             gameId: z.string().optional(),
             gameType: z.string().optional(),
             gameUrl: z.string().optional(),
+            gameEndReason: z.string().optional(),
             liveGameId: z.string().optional(),
             legacyGameId: z.string().optional(),
             isLiveOngoing: z.boolean().optional(),

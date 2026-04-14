@@ -4,6 +4,122 @@
     gap: 8px;
 }
 
+@keyframes outcomeBannerIn {
+    from {
+        opacity: 0;
+        transform: translateY(-8px) scale(0.98);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes outcomeBannerPulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.02);
+    }
+}
+
+.outcomeBanner {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border: 1px solid #3f4754;
+    border-radius: 10px;
+    padding: 10px 12px;
+    background: linear-gradient(180deg, #2a313b 0%, #232931 100%);
+    animation: outcomeBannerIn 260ms ease-out, outcomeBannerPulse 900ms ease-in-out 260ms 1;
+    transform-origin: center;
+}
+
+.outcomeBadge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 999px;
+    font-size: 1rem;
+    font-weight: 900;
+    flex-shrink: 0;
+}
+
+.outcomeWinnerAvatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 999px;
+    object-fit: cover;
+    flex-shrink: 0;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    background-color: #2f3540;
+}
+
+.outcomeText {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.outcomeTitle {
+    color: #f3f7fd;
+    font-size: 0.98rem;
+    font-weight: 900;
+    letter-spacing: 0.01em;
+}
+
+.outcomeDetail {
+    color: #b7c0cb;
+    font-size: 0.82rem;
+    font-weight: 700;
+    text-transform: capitalize;
+}
+
+.outcomeWin {
+    border-color: rgba(95, 165, 89, 0.75);
+    box-shadow: inset 0 0 0 1px rgba(95, 165, 89, 0.18);
+}
+
+.outcomeWin .outcomeBadge {
+    background-color: #5fa559;
+    color: #f5fbf1;
+}
+
+.outcomeLose {
+    border-color: rgba(201, 72, 72, 0.75);
+    box-shadow: inset 0 0 0 1px rgba(201, 72, 72, 0.18);
+}
+
+.outcomeLose .outcomeBadge {
+    background-color: #c94848;
+    color: #fff6f6;
+}
+
+.outcomeDraw {
+    border-color: rgba(102, 133, 176, 0.78);
+    box-shadow: inset 0 0 0 1px rgba(102, 133, 176, 0.18);
+}
+
+.outcomeDraw .outcomeBadge {
+    background-color: #6685b0;
+    color: #f6f8fb;
+}
+
+.outcomeNeutral {
+    border-color: rgba(107, 115, 130, 0.75);
+}
+
+.outcomeNeutral .outcomeBadge {
+    background-color: #6b7382;
+    color: #f7f9fb;
+}
+
 .coachSection {
     display: grid;
     grid-template-columns: 56px 1fr;
