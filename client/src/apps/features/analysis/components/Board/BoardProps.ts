@@ -1,10 +1,28 @@
 import { CSSProperties } from "react";
-import { Arrow } from "react-chessboard/dist/chessboard/types";
 import { Move } from "chess.js";
 
-import { StateTreeNode } from "shared/types/game/position/StateTreeNode";
+import PieceColour from "shared/constants/PieceColour";
 import PlayerProfile from "shared/types/game/PlayerProfile";
 import Evaluation from "shared/types/game/position/Evaluation";
+import { GameOutcomeEffect } from "@analysis/lib/gameOutcome";
+
+export interface BoardArrow {
+    from: string;
+    to: string;
+    color: string;
+    isKnight: boolean;
+}
+
+type BoardNode = {
+    state: {
+        fen: string;
+        moveColour?: PieceColour;
+        clock?: {
+            whiteMs?: number;
+            blackMs?: number;
+        };
+    };
+};
 
 interface BoardProps {
     className?: string;
@@ -17,16 +35,18 @@ interface BoardProps {
     blackProfile?: PlayerProfile;
     whiteProfileUrl?: string;
     blackProfileUrl?: string;
-    node?: StateTreeNode;
+    node?: BoardNode;
     flipped?: boolean;
     evaluation?: Evaluation;
-    arrows?: Arrow[];
+    arrows?: BoardArrow[];
+    outcomeEffect?: GameOutcomeEffect;
     theme?: {
         lightSquareColour?: string;
         darkSquareColour?: string;
         boardTexture?: string;
         pieceSet?: string;
         preset?: string;
+        coordinatesPlacement?: "inside" | "outside" | "off";
     };
     piecesDraggable?: boolean;
     enableClassifications?: boolean;

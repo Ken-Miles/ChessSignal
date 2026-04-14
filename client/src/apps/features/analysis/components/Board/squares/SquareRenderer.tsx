@@ -12,8 +12,8 @@ import {
     CustomSquareRenderer
 } from "react-chessboard/dist/chessboard/types";
 
-import { StateTreeNode } from "shared/types/game/position/StateTreeNode";
 import { parseUciMove } from "shared/lib/utils/chess";
+import { Classification } from "shared/constants/Classification";
 import {
     classificationColours,
     classificationImages
@@ -21,6 +21,21 @@ import {
 
 import { SquaresContext } from "./SquaresContext";
 import * as styles from "./Square.module.css";
+
+type SquareRendererNode = {
+    state: {
+        fen: string;
+        moveColour?: string;
+        clock?: {
+            whiteMs?: number;
+            blackMs?: number;
+        };
+        move?: {
+            uci?: string;
+        };
+        classification?: Classification;
+    };
+};
 
 function getSquareElements(children: ReactNode) {
     const squareElements = Children.toArray(children);
@@ -37,7 +52,7 @@ function getSquareElements(children: ReactNode) {
 }
 
 function createSquareRenderer(
-    nodeRef: MutableRefObject<StateTreeNode>,
+    nodeRef: MutableRefObject<SquareRendererNode>,
     enableClassifications: boolean
 ) {
     return forwardRef<HTMLDivElement, CustomSquareProps>((

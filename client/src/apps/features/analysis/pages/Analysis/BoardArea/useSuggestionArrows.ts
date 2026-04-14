@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { Arrow } from "react-chessboard/dist/chessboard/types";
+import { Chess } from "chess.js";
 
 import { Classification } from "shared/constants/Classification";
 import { parseUciMove } from "shared/lib/utils/chess";
@@ -14,7 +14,28 @@ import useRealtimeEngineStore from "@analysis/stores/RealtimeEngineStore";
 const arrowColour = classificationColours[Classification.BEST];
 const liveResponseArrowColour = "hsla(70, 65%, 55%, 0.95)";
 
-function useSuggestionArrows(): Arrow[] {
+export interface SuggestionArrow {
+    from: string;
+    to: string;
+    color: string;
+    isKnight: boolean;
+}
+
+function buildSuggestionArrow(fen: string, uciMove: string | undefined, color: string): SuggestionArrow | undefined {
+    if (!uciMove) return undefined;
+
+    const move = parseUciMove(uciMove);
+    const piece = new Chess(fen).get(move.from);
+
+    return {
+        from: move.from,
+        to: move.to,
+        color,
+        isKnight: piece?.type == "n"
+    };
+}
+
+function useSuggestionArrows(): SuggestionArrow[] {
     const settings = useSettingsStore(state => state.settings.analysis);
 
     const node = useAnalysisBoardStore(state => state.currentStateTreeNode);
@@ -30,22 +51,31 @@ function useSuggestionArrows(): Arrow[] {
         if (arrowsType == EngineArrowType.TOP_CONTINUATION) {
             const topLineMoves = displayedEngineLines.at(0)?.moves;
             const uciMove = topLineMoves?.at(0)?.uci;
-            if (!uciMove) return [];
+            const arrows: SuggestionArrow[] = [];
 
-            const topMove = parseUciMove(uciMove);
-            const arrows: Arrow[] = [[topMove.from, topMove.to, arrowColour]];
+            const topArrow = buildSuggestionArrow(node.state.fen, uciMove, arrowColour);
+            if (!topArrow) return arrows;
+
+            arrows.push(topArrow);
 
             if (isLiveOngoing) {
                 const responseUci = topLineMoves?.at(1)?.uci;
 
-                if (responseUci) {
-                    const responseMove = parseUciMove(responseUci);
+                if (!uciMove || !responseUci) {
+                    return arrows;
+                }
 
-                    arrows.push([
-                        responseMove.from,
-                        responseMove.to,
-                        liveResponseArrowColour
-                    ]);
+                const responseBoard = new Chess(node.state.fen);
+                const appliedMove = parseUciMove(uciMove);
+                responseBoard.move(appliedMove);
+                const responseArrow = buildSuggestionArrow(
+                    responseBoard.fen(),
+                    responseUci,
+                    liveResponseArrowColour
+                );
+
+                if (responseArrow) {
+                    arrows.push(responseArrow);
                 }
             }
 
@@ -58,11 +88,14 @@ function useSuggestionArrows(): Arrow[] {
             const previousTopUci = getTopEngineLine(
                 node.parent.state.engineLines
             )?.moves.at(0)?.uci;
-            if (!previousTopUci) return [];
 
-            const previousTopMove = parseUciMove(previousTopUci);
+            const previousArrow = buildSuggestionArrow(
+                node.parent.state.fen,
+                previousTopUci,
+                arrowColour
+            );
 
-            return [[previousTopMove.from, previousTopMove.to, arrowColour]];
+            return previousArrow ? [previousArrow] : [];
         }
 
         return [];

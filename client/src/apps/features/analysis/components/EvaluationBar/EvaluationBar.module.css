@@ -1,12 +1,16 @@
 .evaluationBar {
     position: relative;
+    align-self: stretch;
     margin-right: 8px;
     min-width: 16px;
     width: 16px;
-    border: 1px solid #2e3239;
+    height: 100%;
+    flex-shrink: 0;
+    border: 1px solid rgba(46, 50, 57, 0.85);
     border-radius: 4px;
     overflow: hidden;
-    background-color: #2b3038;
+    background-color: rgba(43, 48, 56, 0.82);
+    backdrop-filter: blur(8px);
 }
 
 .evaluationBar:hover {
@@ -60,9 +64,9 @@
     flex-direction: column;
     gap: 2px;
     padding: 5px 7px;
-    border: 1px solid #49515a;
+    border: 1px solid rgba(73, 81, 90, 0.8);
     border-radius: 4px;
-    background-color: #313945;
+    background-color: rgba(49, 57, 69, 0.86);
     color: #e7ecf1;
     font-size: 0.69rem;
     font-weight: 800;

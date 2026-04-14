@@ -310,6 +310,50 @@ function BoardAndPieces() {
             {t("reset", { ns: "common" })}
         </Button>
 
+        <div className={categoryStyles.setting}>
+            <span>
+                {t("boardAndPieces.coordinates")}
+            </span>
+        </div>
+
+        <div className={styles.coordinatesButtonGroup}>
+            <button
+                className={`${styles.coordinatesButton} ${settings.themes.board.coordinatesPlacement === "inside" ? styles.coordinatesButtonActive : ""}`}
+                onClick={() => {
+                    setSettings(draft => {
+                        draft.themes.board.coordinatesPlacement = "inside";
+                        return draft;
+                    });
+                }}
+            >
+                {t("boardAndPieces.coordinatesInside")}
+            </button>
+
+            <button
+                className={`${styles.coordinatesButton} ${settings.themes.board.coordinatesPlacement === "outside" ? styles.coordinatesButtonActive : ""}`}
+                onClick={() => {
+                    setSettings(draft => {
+                        draft.themes.board.coordinatesPlacement = "outside";
+                        return draft;
+                    });
+                }}
+            >
+                {t("boardAndPieces.coordinatesOutside")}
+            </button>
+
+            <button
+                className={`${styles.coordinatesButton} ${settings.themes.board.coordinatesPlacement === "off" ? styles.coordinatesButtonActive : ""}`}
+                onClick={() => {
+                    setSettings(draft => {
+                        draft.themes.board.coordinatesPlacement = "off";
+                        return draft;
+                    });
+                }}
+            >
+                {t("boardAndPieces.coordinatesOff")}
+            </button>
+        </div>
+
         <b className={categoryStyles.subheader}>
             {t("boardAndPieces.presetsTitle")}
         </b>

@@ -29,3 +29,9 @@
     align-items: center;
     gap: 15px;
 }
+
+.description {
+    font-size: 0.9rem;
+    color: var(--ui-shade-3);
+    margin-top: 5px;
+}

@@ -33,7 +33,8 @@ const settingsSchema = z.object({
         board: z.object({
             darkSquareColour: z.string().regex(/^#.{6}$/),
             lightSquareColour: z.string().regex(/^#.{6}$/),
-            texture: z.string().optional()
+            texture: z.string().optional(),
+            coordinatesPlacement: z.enum(["inside", "outside", "off"])
         }),
         piece: z.string(),
         preset: z.string().optional(),
@@ -82,7 +83,8 @@ export const defaultSettings: Settings = {
         board: {
             darkSquareColour: "#b58863",
             lightSquareColour: "#f0d9b5",
-            texture: ""
+            texture: "",
+            coordinatesPlacement: "inside"
         },
         piece: "",
         preset: "",
