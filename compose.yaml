@@ -4,15 +4,26 @@ services:
   app:
     build: .
     ports:
-      - "${PORT:-7861}:7861"
+      - "${BIND_HOST:-127.0.0.1}:${PORT:-7861}:7861"
     env_file:
       - .env
+    # environment:
+    #   DATABASE_URI: "${DATABASE_URI_CONTAINER:-mongodb://database:27017/wintrchess}"
+    #   ORIGIN: "${ORIGIN:-http://localhost:${PORT:-7861}}"
+    #   HOSTNAME_WHITELIST: "${HOSTNAME_WHITELIST:-localhost,127.0.0.1}"
     depends_on:
-      - database
+      database:
+        condition: service_healthy
   database:
     image: mongo:latest
     volumes:
       - chesssignal-database:/data/db
+    # healthcheck:
+    #   test: ["CMD", "mongosh", "--quiet", "--eval", "db.runCommand({ ping: 1 }).ok"]
+    #   interval: 10s
+    #   timeout: 5s
+    #   retries: 5
+    #   start_period: 10s
     attach: false
 
 volumes:
