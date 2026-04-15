@@ -73,20 +73,26 @@ function ClassifiedMoveCard() {
 
     const {
         currentStateTreeNode: node,
-        setCurrentStateTreeNode
+        setCurrentStateTreeNode,
+        dispatchCurrentNodeUpdate
     } = useAnalysisBoardStore();
 
     const {
         realtimeClassifyError,
+        realtimeClassifyErrorNodeId,
         setRealtimeClassifyError
     } = useAnalysisProgressStore(
         useShallow(state => ({
             realtimeClassifyError: state.realtimeClassifyError,
+            realtimeClassifyErrorNodeId: state.realtimeClassifyErrorNodeId,
             setRealtimeClassifyError: state.setRealtimeClassifyError
         }))
     );
 
     useEffect(() => setRealtimeClassifyError(), [node]);
+
+    const showRealtimeClassifyError = realtimeClassifyError
+        && realtimeClassifyErrorNodeId == node.id;
 
     const nearestOpeningName = findNodeRecursively(
         node,
@@ -135,6 +141,7 @@ function ClassifiedMoveCard() {
         const createdNode = addChildMove(node.parent, topAlternativeMove.san);
 
         setCurrentStateTreeNode(createdNode);
+        dispatchCurrentNodeUpdate();
         playBoardSound(createdNode);
     }
 
@@ -147,14 +154,14 @@ function ClassifiedMoveCard() {
             }
         >
             <div className={styles.classification}>
-                <img src={getClassificationIconSrc(nodeClassification, realtimeClassifyError)}/>
+                <img src={getClassificationIconSrc(nodeClassification, showRealtimeClassifyError ? realtimeClassifyError : undefined)}/>
 
                 <span
                     className={styles.classificationName}
                     style={{
                         color: nodeClassification
                             ? classificationColours[nodeClassification]
-                            : (realtimeClassifyError
+                            : (showRealtimeClassifyError
                                 ? classificationColours[Classification.BLUNDER]
                                 : "white"
                             )
@@ -162,7 +169,7 @@ function ClassifiedMoveCard() {
                 >
                     {nodeClassification
                         ? playedMoveMessage
-                        : (realtimeClassifyError
+                        : (showRealtimeClassifyError
                             ? t("error") : t("loading")
                         )
                     }
@@ -185,7 +192,7 @@ function ClassifiedMoveCard() {
                 </span>}
             </div>
 
-            {realtimeClassifyError
+            {showRealtimeClassifyError
                 && <LogMessage style={{ marginTop: "5px" }}>
                     {t(realtimeClassifyError, { ns: "analysis" })}
                 </LogMessage>

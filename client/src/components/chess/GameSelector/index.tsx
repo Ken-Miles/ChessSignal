@@ -39,8 +39,6 @@ const sourcePlaceholderKeys: Record<GameSourceType, string> = {
     LICHESS: "lichess"
 };
 
-const isProductionMode = process.env.NODE_ENV == "production";
-
 function parseProductionChessComFields(value: string) {
     const chunks = value
         .split(/\r?\n|\|/)
@@ -116,8 +114,7 @@ function GameSelector({
         () => parseProductionChessComFields(currentFieldInput),
         [currentFieldInput]
     );
-    const showProductionChessComInlineInput = isProductionMode
-        && gameSource.key == GameSource.CHESS_COM.key;
+    const showProductionChessComInlineInput = gameSource.key == GameSource.CHESS_COM.key;
 
     const [
         serviceGames,
@@ -200,8 +197,7 @@ function GameSelector({
             && isChessComGameUrl(currentFieldInput)
         ) {
             if (
-                isProductionMode
-                && parseProductionChessComFields(currentFieldInput).username.length == 0
+                parseProductionChessComFields(currentFieldInput).username.length == 0
             ) {
                 return onGameSelect?.(null);
             }

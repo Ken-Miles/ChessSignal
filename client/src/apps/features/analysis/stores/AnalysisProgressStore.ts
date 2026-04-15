@@ -10,12 +10,13 @@ interface AnalysisProgressStore {
     analysisStatus: AnalysisStatus;
     analysisError?: string;
     realtimeClassifyError?: string;
+    realtimeClassifyErrorNodeId?: string;
 
     setEvaluationController: (controller?: AbortController) => void;
     setEvaluationProgress: (progress: number) => void;
     setAnalysisStatus: (status: AnalysisStatus) => void;
     setAnalysisError: (error?: string) => void;
-    setRealtimeClassifyError: (error?: string) => void;
+    setRealtimeClassifyError: (error?: string, nodeId?: string) => void;
 }
 
 const useAnalysisProgressStore = create<AnalysisProgressStore>(set => ({
@@ -38,8 +39,11 @@ const useAnalysisProgressStore = create<AnalysisProgressStore>(set => ({
         set({ analysisError: error });
     },
 
-    setRealtimeClassifyError(error) {
-        set({ realtimeClassifyError: error });
+    setRealtimeClassifyError(error, nodeId) {
+        set({
+            realtimeClassifyError: error,
+            realtimeClassifyErrorNodeId: nodeId
+        });
     }
 }));
 

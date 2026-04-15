@@ -1,11 +1,13 @@
 import React, { useEffect, useMemo, useRef } from "react";
+import { useShallow } from "zustand/react/shallow";
 
 import {
-    getNodeChain,
     getNodeMoveNumber
 } from "shared/types/game/position/StateTreeNode";
 import { Classification } from "shared/constants/Classification";
+import PieceColour from "shared/constants/PieceColour";
 import useSettingsStore from "@/stores/SettingsStore";
+import useAnalysisBoardStore from "@analysis/stores/AnalysisBoardStore";
 import {
     classificationColours,
     classificationImages,
@@ -26,12 +28,45 @@ interface Row {
     moveNumber: number;
     white?: any;
     black?: any;
+    whiteVariations?: any[];
+    blackVariations?: any[];
 }
 
 interface TimestampCellData {
     text: string;
     barWidthPx: number;
     timeValue: number;
+}
+
+function getVisibleChildren(node: any) {
+    return node.children.filter((child: any) => {
+        if (child.source == "engine") return false;
+        if (child.source == "user") return true;
+
+        if (child.parent?.id && typeof child.id == "string") {
+            return !child.id.startsWith(`${child.parent.id}-`);
+        }
+
+        return true;
+    });
+}
+
+function getVisibleChain(rootNode: any) {
+    const chain: any[] = [rootNode];
+    let current = rootNode;
+
+    while (current) {
+        const visibleChildren = getVisibleChildren(current);
+        const nextNode = visibleChildren.find((child: any) => child.mainline)
+            || visibleChildren[0];
+
+        if (!nextNode) break;
+
+        chain.push(nextNode);
+        current = nextNode;
+    }
+
+    return chain;
 }
 
 const pieceClassNameByFigure = {
@@ -130,8 +165,14 @@ function MainlineMoveList({
         state => state.settings.analysis.classifications.hide
     );
 
+    const {
+        currentStateTreeNodeUpdate
+    } = useAnalysisBoardStore(useShallow(state => ({
+        currentStateTreeNodeUpdate: state.currentStateTreeNodeUpdate
+    })));
+
     const rows = useMemo<Row[]>(() => {
-        const mainline = (getNodeChain as any)(stateTreeRootNode).slice(1) as any[];
+        const mainline = getVisibleChain(stateTreeRootNode).slice(1) as any[];
         const generatedRows: Row[] = [];
 
         for (let i = 0; i < mainline.length; i += 2) {
@@ -140,18 +181,25 @@ function MainlineMoveList({
 
             if (!white) continue;
 
+            const whiteVariations = getVisibleChildren(white).filter((child: any) => !child.mainline);
+            const blackVariations = black
+                ? getVisibleChildren(black).filter((child: any) => !child.mainline)
+                : [];
+
             generatedRows.push({
                 moveNumber: Math.trunc((getNodeMoveNumber as any)(
                     white,
                     stateTreeRootNode.state.fen
                 )),
                 white,
-                black
+                black,
+                whiteVariations: whiteVariations.length > 0 ? whiteVariations : undefined,
+                blackVariations: blackVariations.length > 0 ? blackVariations : undefined
             });
         }
 
         return generatedRows;
-    }, [stateTreeRootNode]);
+    }, [stateTreeRootNode, currentStateTreeNodeUpdate]);
 
     const maxMoveDurationMs = useMemo(() => {
         const maxDuration = rows.flatMap(row => [
@@ -180,6 +228,54 @@ function MainlineMoveList({
             behavior: "smooth"
         });
     }, [selectedNodeId]);
+
+    function getVariationRows(startNode: any) {
+        const variationRows: Row[] = [];
+        let currentRow: Row | undefined;
+        let current = startNode;
+
+        while (current) {
+            const node = current;
+            const moveNumber = Math.trunc((getNodeMoveNumber as any)(
+                node,
+                stateTreeRootNode.state.fen
+            ));
+
+            if (node.state.moveColour == PieceColour.WHITE) {
+                if (currentRow) {
+                    variationRows.push(currentRow);
+                }
+
+                currentRow = {
+                    moveNumber,
+                    white: node
+                };
+
+                current = getVisibleChildren(node)[0];
+                continue;
+            }
+
+            if (!currentRow) {
+                currentRow = {
+                    moveNumber,
+                    black: node
+                };
+
+                current = getVisibleChildren(node)[0];
+                continue;
+            }
+
+            currentRow.black = node;
+
+            current = getVisibleChildren(node)[0];
+        }
+
+        if (currentRow) {
+            variationRows.push(currentRow);
+        }
+
+        return variationRows;
+    }
 
     function renderMoveCell(node: any, isWhiteMove: boolean) {
         const san = node.state.move?.san || "...";
@@ -241,26 +337,95 @@ function MainlineMoveList({
         </div>;
     }
 
+    function renderVariationRows(
+        startNode: any,
+        keyPrefix: string,
+        rowClassName: string
+    ) {
+        return getVariationRows(startNode).map((row, index) => (
+            <div
+                key={`${keyPrefix}-${row.white?.id || row.black?.id || index}`}
+                className={`${styles.variationRow} ${rowClassName}`}
+                data-whole-move-number={row.moveNumber}
+            >
+                <span className={`${styles.moveNumber} ${styles.variationMoveNumber}`}>
+                    {row.moveNumber}.
+                </span>
+
+                {row.white
+                    ? renderMoveCell(row.white, true)
+                    : <div className={styles.whiteMovePlaceholder}></div>
+                }
+
+                {row.black
+                    ? renderMoveCell(row.black, false)
+                    : <div className={styles.blackMovePlaceholder}></div>
+                }
+
+                <div className={styles.timeStack}>
+                    {renderTimestampCell(row.white, styles.timeWhite)}
+                    {renderTimestampCell(row.black, styles.timeBlack)}
+                </div>
+            </div>
+        ));
+    }
+
+    function shouldDeferBlackVariationsToNextRow(
+        row: Row,
+        nextRow: Row | undefined
+    ) {
+        if (!row.blackVariations?.length) return false;
+        if (!row.black || !nextRow?.white) return false;
+
+        return nextRow.white.parent == row.black;
+    }
+
     return <div ref={wrapperRef} className={`${styles.wrapper} ${className || ""}`}>
-        {rows.map((row, index) => <div
+        {rows.map((row, index) => <React.Fragment
             key={row.white?.id || `${row.moveNumber}-${index}`}
-            className={styles.row + ` ${index % 2 == 0 ? styles.lightRow : styles.darkRow}`}
-            data-whole-move-number={row.moveNumber}
         >
-            <span className={styles.moveNumber}>{row.moveNumber}.</span>
+            <div
+                className={styles.row + ` ${index % 2 == 0 ? styles.lightRow : styles.darkRow}`}
+                data-whole-move-number={row.moveNumber}
+            >
+                <span className={styles.moveNumber}>{row.moveNumber}.</span>
 
-            {row.white && renderMoveCell(row.white, true)}
+                {row.white && renderMoveCell(row.white, true)}
 
-            {row.black
-                ? renderMoveCell(row.black, false)
-                : <div className={styles.blackMovePlaceholder}></div>
+                {row.black
+                    ? renderMoveCell(row.black, false)
+                    : <div className={styles.blackMovePlaceholder}></div>
+                }
+
+                <div className={styles.timeStack}>
+                    {renderTimestampCell(row.white, styles.timeWhite)}
+                    {renderTimestampCell(row.black, styles.timeBlack)}
+                </div>
+            </div>
+
+            {index > 0
+                && shouldDeferBlackVariationsToNextRow(rows[index - 1], row)
+                && rows[index - 1].blackVariations?.map((varNode, variationIndex) => renderVariationRows(
+                    varNode,
+                    `${rows[index - 1].black?.id || rows[index - 1].moveNumber}-b${variationIndex}-deferred`,
+                    (index - 1) % 2 == 0 ? styles.lightRow : styles.darkRow
+                ))
             }
 
-            <div className={styles.timeStack}>
-                {renderTimestampCell(row.white, styles.timeWhite)}
-                {renderTimestampCell(row.black, styles.timeBlack)}
-            </div>
-        </div>)}
+            {row.whiteVariations?.map((varNode, variationIndex) => renderVariationRows(
+                varNode,
+                `${row.white?.id || row.moveNumber}-w${variationIndex}`,
+                index % 2 == 0 ? styles.lightRow : styles.darkRow
+            ))}
+
+            {!shouldDeferBlackVariationsToNextRow(row, rows[index + 1])
+                && row.blackVariations?.map((varNode, variationIndex) => renderVariationRows(
+                    varNode,
+                    `${row.black?.id || row.moveNumber}-b${variationIndex}`,
+                    index % 2 == 0 ? styles.lightRow : styles.darkRow
+                ))
+            }
+        </React.Fragment>)}
     </div>;
 }
 

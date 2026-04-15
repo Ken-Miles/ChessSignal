@@ -51,7 +51,6 @@ const gameResultCodes: Record<string, GameResult | undefined> = {
 };
 
 const futureFetchError = "Date cannot be set in the future";
-const isProductionMode = process.env.NODE_ENV == "production";
 const chessComUsernamePattern = /^[a-z0-9][a-z0-9_-]{1,24}$/i;
 
 interface ChessComCallbackGameResponse {
@@ -178,6 +177,31 @@ function buildChessComGameUrl(gameType: ChessComGameType, gameId: string) {
     return `https://www.chess.com/game/${gameType}/${gameId}`;
 }
 
+export function withChessComLookupUsername(
+    gameUrl: string,
+    username?: string
+) {
+    if (!username) {
+        return gameUrl;
+    }
+
+    const normalisedUsername = normaliseChessComUsername(username);
+
+    if (!normalisedUsername) {
+        return gameUrl;
+    }
+
+    const url = normaliseChessComUrl(gameUrl);
+
+    if (!url) {
+        return gameUrl;
+    }
+
+    url.searchParams.set("username", normalisedUsername);
+
+    return url.toString();
+}
+
 function parseIsoDurationMilliseconds(duration?: string) {
     if (!duration) return;
 
@@ -209,6 +233,18 @@ function getChessComLookupUsernameFromInput(input: string) {
         .filter(Boolean);
 
     for (const chunk of chunks) {
+        const parsedUrl = normaliseChessComUrl(chunk);
+
+        if (parsedUrl) {
+            const usernameFromQuery = normaliseChessComUsername(
+                parsedUrl.searchParams.get("username") || ""
+            );
+
+            if (usernameFromQuery) {
+                return usernameFromQuery;
+            }
+        }
+
         if (parseChessComGameSelection(chunk)) {
             continue;
         }
@@ -708,109 +744,29 @@ function buildChessComLiveGame(payload: ChessComLiveEndpointResponse): ChessComL
 export async function pollChessComLiveGame(
     liveGameId: string
 ): Promise<APIResponse<ChessComLiveGamePollResult>> {
-    if (isProductionMode) {
-        return { status: StatusCodes.NOT_FOUND };
-    }
+    void liveGameId;
 
-    let response: Response;
-
-    try {
-        response = await fetch(
-            `/api/public/chess-com/live/game/${encodeURIComponent(liveGameId)}`
-        );
-    } catch {
-        return { status: StatusCodes.BAD_GATEWAY };
-    }
-
-    if (!response.ok) {
-        return { status: response.status };
-    }
-
-    const payload = await response.json() as ChessComLiveEndpointResponse;
-    const liveGame = buildChessComLiveGame(payload);
-
-    if (!liveGame) {
-        return {
-            status: StatusCodes.BAD_GATEWAY
-        };
-    }
-
-    return {
-        status: StatusCodes.OK,
-        ...liveGame
-    };
+    return { status: StatusCodes.NOT_FOUND };
 }
 
 async function fetchChessComCallbackGame(
     gameType: ChessComGameType,
     gameId: string
 ): APIResponse<{ game: Game }> {
-    if (isProductionMode) {
-        return { status: StatusCodes.NOT_FOUND };
-    }
+    void gameType;
+    void gameId;
 
-    let response: Response;
-
-    try {
-        response = await fetch(
-            `/api/public/chess-com/callback/${gameType}/game/${gameId}`
-        );
-    } catch {
-        return { status: StatusCodes.BAD_GATEWAY };
-    }
-
-    if (!response.ok) {
-        return { status: response.status };
-    }
-
-    const payload = await response.json() as ChessComCallbackGameResponse;
-    const game = payload.game;
-    const results = getChessComGameResults(game);
-    const pgnHeaders = game.pgnHeaders || {};
-    const moveTimestampsMs = parseChessComMoveTimestamps(game);
-    const clockBaseMs = game.timeControl?.baseMs || (game.baseTime1 ? game.baseTime1 * 100 : undefined);
-
-    return {
-        status: StatusCodes.OK,
-        game: {
-            pgn: buildChessComPgn(game),
-            timeControl: getChessComGameTimeControl(game),
-            variant: Variant.STANDARD,
-            initialPosition: pgnHeaders.FEN || game.initialSetup || STARTING_FEN,
-            source: {
-                chessCom: {
-                    gameId,
-                    gameType,
-                    gameUrl: buildChessComGameUrl(gameType, gameId),
-                    gameEndReason: game.gameEndReason,
-                    liveGameId: gameType == "live" ? gameId : undefined,
-                    isLiveOngoing: gameType == "live" && !game.isFinished,
-                    clockBaseMs,
-                    moveTimestampsMs
-                } as any
-            },
-            players: {
-                white: {
-                    username: payload.players.bottom.username || pgnHeaders.White || "White",
-                    rating: payload.players.bottom.rating || Number(pgnHeaders.WhiteElo),
-                    image: payload.players.bottom.avatarUrl,
-                    result: results.white
-                },
-                black: {
-                    username: payload.players.top.username || pgnHeaders.Black || "Black",
-                    rating: payload.players.top.rating || Number(pgnHeaders.BlackElo),
-                    image: payload.players.top.avatarUrl,
-                    result: results.black
-                }
-            },
-            date: game.endTime
-                ? new Date(game.endTime * 1000).toISOString()
-                : game.startTime
-                    ? new Date(game.startTime * 1000).toISOString()
-                    : undefined
-        }
-    };
+    return { status: StatusCodes.NOT_FOUND };
 }
+
+// Legacy callback/live parsers are intentionally kept as fallback-compatible
+// parsing utilities, but private endpoint fetching is disabled.
+void parseChessComMoveTimestamps;
+void getChessComGameTimeControl;
+void getChessComGameResults;
+void buildChessComPgn;
+void buildChessComLiveGame;
+void fetchChessComCallbackGame;
 
 export async function getChessComGame(input: string): APIResponse<{ game: Game }> {
     const parsedSelection = parseChessComGameSelectionFromInput(input);
@@ -819,45 +775,16 @@ export async function getChessComGame(input: string): APIResponse<{ game: Game }
         return { status: StatusCodes.NOT_FOUND };
     }
 
-    if (isProductionMode) {
-        const lookupUsername = getChessComLookupUsernameFromInput(input);
+    const lookupUsername = getChessComLookupUsernameFromInput(input);
 
-        if (!lookupUsername) {
-            return { status: StatusCodes.BAD_REQUEST };
-        }
-
-        return await getChessComGameByPublicArchiveLookup(
-            lookupUsername,
-            parsedSelection.gameId
-        );
+    if (!lookupUsername) {
+        return { status: StatusCodes.BAD_REQUEST };
     }
 
-    if (parsedSelection.gameType == "live") {
-        const liveGame = await pollChessComLiveGame(parsedSelection.gameId);
-
-        if (liveGame.status == StatusCodes.OK && liveGame.game) {
-            return {
-                status: StatusCodes.OK,
-                game: liveGame.game
-            };
-        }
-
-        if (isChessComProxyUnavailableStatus(liveGame.status)) {
-            return { status: StatusCodes.BAD_GATEWAY };
-        }
-
-        return await fetchChessComCallbackGame("live", parsedSelection.gameId);
-    }
-
-    if (parsedSelection.gameType) {
-        return await fetchChessComCallbackGame(parsedSelection.gameType, parsedSelection.gameId);
-    }
-
-    const liveGame = await fetchChessComCallbackGame("live", parsedSelection.gameId);
-    if (liveGame.status == StatusCodes.OK) return liveGame;
-    if (isChessComProxyUnavailableStatus(liveGame.status)) return liveGame;
-
-    return await fetchChessComCallbackGame("daily", parsedSelection.gameId);
+    return await getChessComGameByPublicArchiveLookup(
+        lookupUsername,
+        parsedSelection.gameId
+    );
 }
 
 async function getChessComGames(

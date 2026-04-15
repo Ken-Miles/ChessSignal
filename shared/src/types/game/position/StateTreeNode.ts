@@ -9,6 +9,7 @@ import { pickEngineLines } from "./EngineLine";
 export const stateTreeNodeSchema = z.object({
     id: z.string(),
     mainline: z.boolean(),
+    source: z.enum(["user", "engine"]).optional(),
     state: boardStateSchema,
     get children(): z.ZodArray<typeof stateTreeNodeSchema> {
         return stateTreeNodeSchema.array();
@@ -219,6 +220,16 @@ export function addChildMove(node: StateTreeNode, san: string) {
     const existingNode = node.children.find(
         child => child.state.move?.san == san
     );
+
+    if (existingNode) {
+        // If a user plays a move that already exists as an engine suggestion,
+        // promote it so it persists and renders like a normal user variation.
+        if (existingNode.source == "engine") {
+            existingNode.source = "user";
+        }
+
+        return existingNode;
+    }
     
     const childMove = new Chess(node.state.fen).move(san);
 
@@ -229,6 +240,7 @@ export function addChildMove(node: StateTreeNode, san: string) {
                 child => child.mainline
             ),
         parent: node,
+        source: "user",
         children: [],
         state: {
             fen: childMove.after,
@@ -243,9 +255,7 @@ export function addChildMove(node: StateTreeNode, san: string) {
         }
     };
 
-    if (!existingNode) {
-        node.children.push(createdNode);
-    }
+    node.children.push(createdNode);
 
-    return existingNode || createdNode;
+    return createdNode;
 }

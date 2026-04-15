@@ -57,10 +57,15 @@ export function parseSanMove(san: string) {
 }
 
 export function parseUciMove(uci: string) {
+    const promotionRaw = uci.charAt(4).toLowerCase();
+    const promotion = ["q", "r", "b", "n"].includes(promotionRaw)
+        ? promotionRaw as PieceSymbol
+        : undefined;
+
     return {
         from: uci.slice(0, 2) as Square,
         to: uci.slice(2, 4) as Square,
-        promotion: uci.charAt(4) || undefined
+        promotion
     };
 }
 

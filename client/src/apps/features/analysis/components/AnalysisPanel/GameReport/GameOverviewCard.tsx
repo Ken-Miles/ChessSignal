@@ -70,10 +70,10 @@ function GameOverviewCard({ analysisGame, accuracies }: GameOverviewCardProps) {
         return [
             make("Brilliant", Classification.BRILLIANT),
             make("Great", Classification.CRITICAL),
-            make("Book", Classification.THEORY),
             make("Best", Classification.BEST),
             make("Excellent", Classification.EXCELLENT),
             make("Good", Classification.OKAY),
+            make("Book", Classification.THEORY),
             make("Inaccuracy", Classification.INACCURACY),
             make("Mistake", Classification.MISTAKE),
             make("Miss", Classification.MISS),

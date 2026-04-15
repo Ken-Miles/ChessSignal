@@ -14,6 +14,22 @@
     border-radius: 3px;
 }
 
+.variationRow {
+    display: grid;
+    grid-template-columns: 32px minmax(0, 1fr) minmax(0, 1fr) 35px;
+    align-items: center;
+    gap: 6px;
+    min-height: 34px;
+    padding: 2px 4px 2px calc(14px + (var(--variationDepth, 0) * 12px));
+    border-radius: 3px;
+    border-left: 2px solid rgba(153, 163, 178, 0.35);
+}
+
+.variationMoveNumber {
+    color: #8f97a3;
+    font-size: 0.75rem;
+}
+
 .lightRow {
     background-color: #262b31;
 }
@@ -55,6 +71,11 @@
 }
 
 .blackMovePlaceholder {
+    justify-self: stretch;
+    min-height: 26px;
+}
+
+.whiteMovePlaceholder {
     justify-self: stretch;
     min-height: 26px;
 }
@@ -137,8 +158,18 @@
     opacity: 1;
 }
 
+.variationRow:hover .timeLabel,
+.variationRow:focus-within .timeLabel {
+    opacity: 1;
+}
+
 .row:hover .timeCell::before,
 .row:focus-within .timeCell::before {
+    opacity: 0;
+}
+
+.variationRow:hover .timeCell::before,
+.variationRow:focus-within .timeCell::before {
     opacity: 0;
 }
 

@@ -16,7 +16,8 @@ import {
 import {
     getChessComGame,
     buildChessComGameUrl,
-    parseChessComGameSelection
+    parseChessComGameSelection,
+    withChessComLookupUsername
 } from "@/lib/games/chessCom";
 import getChessComGames from "@/lib/games/chessCom";
 import getLichessGames from "@/lib/games/lichess";
@@ -175,13 +176,19 @@ function useImportGame() {
         setGameAnalysisOpen(true);
 
         const chessComSource = importedGame.source?.chessCom;
-        const chessComSelectionInput = chessComSource?.gameUrl
+        const chessComGameUrl = chessComSource?.gameUrl
             || (chessComSource?.gameType && chessComSource?.gameId
                 ? buildChessComGameUrl(
                     chessComSource.gameType as "live" | "daily" | "computer" | "master",
                     chessComSource.gameId
                 )
                 : undefined);
+        const chessComSelectionInput = chessComGameUrl
+            ? withChessComLookupUsername(
+                chessComGameUrl,
+                importedGame.players.white.username || importedGame.players.black.username
+            )
+            : undefined;
 
         const fieldInput = (
             savedGameSource.key == GameSource.CHESS_COM.key

@@ -15,7 +15,8 @@ function EngineLine({ line }: EngineLineProps) {
 
     const {
         currentStateTreeNode,
-        setCurrentStateTreeNode
+        setCurrentStateTreeNode,
+        dispatchCurrentNodeUpdate
     } = useAnalysisBoardStore();
 
     const [ expanded, setExpanded ] = useState(false);
@@ -35,6 +36,7 @@ function EngineLine({ line }: EngineLineProps) {
         }
 
         setCurrentStateTreeNode(currentNode);
+        dispatchCurrentNodeUpdate();
 
         playBoardSound(currentNode);
     }

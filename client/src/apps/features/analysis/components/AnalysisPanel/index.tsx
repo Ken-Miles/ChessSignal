@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 
 import AnalysisTab from "@analysis/constants/AnalysisTab";
 import { GameSource } from "@/components/chess/GameSelector/GameSource";
+import { withChessComLookupUsername } from "@/lib/games/chessCom";
 import useSettingsStore from "@/stores/SettingsStore";
 import useAnalysisGameStore from "@analysis/stores/AnalysisGameStore";
 import useAnalysisBoardStore from "@analysis/stores/AnalysisBoardStore";
@@ -46,11 +47,15 @@ function AnalysisPanel({
 
     const handleStartReview = () => {
         const chessComSource = useAnalysisGameStore.getState().analysisGame.source?.chessCom;
+        const chessComPlayers = useAnalysisGameStore.getState().analysisGame.players;
 
         if (chessComSource?.liveGameId && !chessComSource.isLiveOngoing && chessComSource.gameUrl) {
             setSearchParams(updateAnalysisSelectionUrl(searchParams, {
                 sourceKey: GameSource.CHESS_COM.key,
-                fieldInput: chessComSource.gameUrl,
+                fieldInput: withChessComLookupUsername(
+                    chessComSource.gameUrl,
+                    chessComPlayers?.white.username || chessComPlayers?.black.username
+                ),
                 perspective: (searchParams.get(analysisSelectionUrlKeys.perspective) as "white" | "black" | "auto" | null) || undefined
             }));
 
