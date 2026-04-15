@@ -10,9 +10,9 @@ const isProductionMode = process.env.NODE_ENV == "production";
 export type AnalysisPerspective = "white" | "black" | "auto";
 
 export const analysisSelectionUrlKeys = {
-    gameSource: "game_source",
-    gameInput: "game_input",
-    perspective: "game_perspective",
+    gameSource: "source",
+    gameInput: "input",
+    perspective: "perspective",
     chessComUsername: "chesscom_username",
     chessComGameId: "chesscom_game_id",
     chessComGameType: "chesscom_game_type",
@@ -21,19 +21,159 @@ export const analysisSelectionUrlKeys = {
     pgn: "pgn"
 } as const;
 
+const legacyAnalysisSelectionUrlKeys = {
+    gameSource: "game_source",
+    gameInput: "game_input",
+    perspective: "game_perspective"
+} as const;
+
+export const analysisArchiveUrlKeys = {
+    gameId: "archive"
+} as const;
+
+export const analysisMoveUrlKeys = {
+    move: "move"
+} as const;
+
+const legacyAnalysisArchiveUrlKeys = {
+    gameId: "game"
+} as const;
+
 export const analysisSelectionUrlKeyList = Object.values(
     analysisSelectionUrlKeys
-);
+).concat(Object.values(
+    legacyAnalysisSelectionUrlKeys
+));
+
+export const analysisArchiveUrlKeyList = [
+    analysisArchiveUrlKeys.gameId,
+    legacyAnalysisArchiveUrlKeys.gameId
+];
+
+const analysisQueryPriorityKeys = [
+    analysisSelectionUrlKeys.gameSource,
+    analysisArchiveUrlKeys.gameId,
+    analysisSelectionUrlKeys.chessComGameId,
+    analysisSelectionUrlKeys.chessComGameType
+] as const;
+
+const analysisQueryTrailingKeys = [
+    analysisSelectionUrlKeys.perspective,
+    analysisMoveUrlKeys.move
+] as const;
+
+function reorderAnalysisSearchParams(searchParams: URLSearchParams) {
+    const orderedSearchParams = new URLSearchParams();
+
+    for (const key of analysisQueryPriorityKeys) {
+        if (searchParams.has(key)) {
+            orderedSearchParams.set(key, searchParams.get(key) || "");
+        }
+    }
+
+    for (const [key, value] of searchParams.entries()) {
+        if (analysisQueryPriorityKeys.includes(key as any)) continue;
+        if (analysisQueryTrailingKeys.includes(key as any)) continue;
+
+        orderedSearchParams.set(key, value);
+    }
+
+    for (const key of analysisQueryTrailingKeys) {
+        if (searchParams.has(key)) {
+            orderedSearchParams.set(key, searchParams.get(key) || "");
+        }
+    }
+
+    return orderedSearchParams;
+}
+
+function normaliseMovePly(value?: number) {
+    if (value == undefined || Number.isNaN(value)) {
+        return;
+    }
+
+    return Math.max(0, Math.trunc(value));
+}
+
+export function getAnalysisMovePlyFromUrl(searchParams: URLSearchParams) {
+    const rawValue = searchParams.get(analysisMoveUrlKeys.move);
+    if (!rawValue) {
+        return;
+    }
+
+    return normaliseMovePly(Number(rawValue));
+}
+
+export function updateAnalysisMoveUrl(
+    searchParams: URLSearchParams,
+    movePly?: number
+) {
+    const nextSearchParams = new URLSearchParams(searchParams);
+    const nextMovePly = normaliseMovePly(movePly);
+
+    if (nextMovePly == undefined) {
+        nextSearchParams.delete(analysisMoveUrlKeys.move);
+
+        return nextSearchParams;
+    }
+
+    nextSearchParams.set(
+        analysisMoveUrlKeys.move,
+        nextMovePly.toString()
+    );
+
+    return reorderAnalysisSearchParams(nextSearchParams);
+}
+
+function getSearchParam(
+    searchParams: URLSearchParams,
+    key: string,
+    legacyKey?: string
+) {
+    return searchParams.get(key)
+        || (legacyKey ? searchParams.get(legacyKey) : null);
+}
+
+export function getAnalysisArchiveGameIdFromUrl(searchParams: URLSearchParams) {
+    return getSearchParam(
+        searchParams,
+        analysisArchiveUrlKeys.gameId,
+        legacyAnalysisArchiveUrlKeys.gameId
+    ) || undefined;
+}
+
+export function updateAnalysisArchiveGameIdUrl(
+    searchParams: URLSearchParams,
+    gameId?: string
+) {
+    const nextSearchParams = new URLSearchParams(searchParams);
+
+    nextSearchParams.delete(legacyAnalysisArchiveUrlKeys.gameId);
+
+    if (gameId) {
+        nextSearchParams.set(analysisArchiveUrlKeys.gameId, gameId);
+    } else {
+        nextSearchParams.delete(analysisArchiveUrlKeys.gameId);
+    }
+
+    return reorderAnalysisSearchParams(nextSearchParams);
+}
 
 export function isChessComGameUrl(value: string) {
     return parseChessComGameSelectionFromInput(value) != undefined;
 }
 
 export function getAnalysisSelectionFromUrl(searchParams: URLSearchParams) {
-    const sourceKeyFromUrl = searchParams.get(
-        analysisSelectionUrlKeys.gameSource
+    const sourceKeyFromUrl = getSearchParam(
+        searchParams,
+        analysisSelectionUrlKeys.gameSource,
+        legacyAnalysisSelectionUrlKeys.gameSource
     );
-    const gameInput = searchParams.get(analysisSelectionUrlKeys.gameInput) || "";
+    const gameInput = getSearchParam(
+        searchParams,
+        analysisSelectionUrlKeys.gameInput,
+        legacyAnalysisSelectionUrlKeys.gameInput
+    ) || "";
     const chessComGameId = searchParams.get(analysisSelectionUrlKeys.chessComGameId) || undefined;
     const chessComGameTypeFromUrl = searchParams.get(analysisSelectionUrlKeys.chessComGameType) as ChessComGameType | null;
     const chessComGameType = isProductionMode && chessComGameTypeFromUrl == "live"
@@ -78,8 +218,10 @@ export function getAnalysisSelectionFromUrl(searchParams: URLSearchParams) {
         || searchParams.get(analysisSelectionUrlKeys.pgn)
         || "";
 
-    const perspective = searchParams.get(
-        analysisSelectionUrlKeys.perspective
+    const perspective = getSearchParam(
+        searchParams,
+        analysisSelectionUrlKeys.perspective,
+        legacyAnalysisSelectionUrlKeys.perspective
     ) as AnalysisPerspective | null;
 
     return {
@@ -108,6 +250,8 @@ export function updateAnalysisSelectionUrl(
         nextSearchParams.delete(key);
     }
 
+    nextSearchParams.delete(analysisMoveUrlKeys.move);
+
     if (sourceKey) {
         nextSearchParams.set(
             analysisSelectionUrlKeys.gameSource,
@@ -135,9 +279,10 @@ export function updateAnalysisSelectionUrl(
 
     if (sourceKey == GameSource.CHESS_COM.key || sourceKey == GameSource.CHESS_COM_LIVE.key) {
         const parsedGame = parseChessComGameSelectionFromInput(input.fieldInput);
-        const canonicalGameUrl = parsedGame?.gameUrl || input.fieldInput;
 
         if (parsedGame?.gameId) {
+            nextSearchParams.delete(analysisSelectionUrlKeys.gameInput);
+
             nextSearchParams.set(
                 analysisSelectionUrlKeys.chessComGameId,
                 parsedGame.gameId
@@ -154,11 +299,6 @@ export function updateAnalysisSelectionUrl(
                     "live"
                 );
             }
-
-            nextSearchParams.set(
-                analysisSelectionUrlKeys.gameInput,
-                canonicalGameUrl
-            );
         } else {
             nextSearchParams.set(
                 analysisSelectionUrlKeys.chessComUsername,
@@ -176,7 +316,7 @@ export function updateAnalysisSelectionUrl(
         nextSearchParams.set(analysisSelectionUrlKeys.pgn, input.fieldInput);
     }
 
-    return nextSearchParams;
+    return reorderAnalysisSearchParams(nextSearchParams);
 }
 
 export function updateAnalysisPerspectiveUrl(
@@ -190,5 +330,5 @@ export function updateAnalysisPerspectiveUrl(
         perspective
     );
 
-    return nextSearchParams;
+    return reorderAnalysisSearchParams(nextSearchParams);
 }

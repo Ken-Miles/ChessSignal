@@ -21,7 +21,7 @@ export async function getArchivedGames(): APIResponse<{ games: GameArchive }> {
 export async function getArchivedGame(
     gameId: string
 ): APIResponse<{ game: AnalysedGame }> {
-    const response = await fetch(`/api/public/archived-game?id=${gameId}`);
+    const response = await fetch(`/api/public/archived-game?gameId=${gameId}`);
 
     if (!response.ok) return { status: response.status };
 
@@ -40,7 +40,7 @@ export async function archiveGame(
     gameId?: string
 ): APIResponse<{ id: string }> {
     const url = gameId
-        ? `/api/analysis/archive/add?id=${gameId}`
+        ? `/api/analysis/archive/add?gameId=${gameId}`
         : "/api/analysis/archive/add";
 
     const response = await fetch(url, {

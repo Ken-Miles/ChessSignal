@@ -3,6 +3,8 @@ import { Chess } from "chess.js";
 
 import PieceColour from "shared/constants/PieceColour";
 
+import ChessComUsername from "@/components/chess/ChessComUsername";
+
 import PlayerProfileProps from "./PlayerProfileProps";
 import * as styles from "./PlayerProfile.module.css";
 
@@ -99,6 +101,9 @@ function PlayerProfile({
     const [ liveClockDisplayMs, setLiveClockDisplayMs ] = useState<number | undefined>(clockTimeMs);
     const initialClockTimeMsRef = useRef<number>();
     const displayedClockMs = liveClockDisplayMs;
+    const profileWithChessComStatus = profile as typeof profile & {
+        chessComStatus?: string;
+    };
     const hasClockTime = displayedClockMs != undefined
         && !Number.isNaN(displayedClockMs);
     const isLowTimeValue = displayedClockMs != undefined
@@ -228,19 +233,12 @@ function PlayerProfile({
                         {profile.title}
                     </span>}
 
-                    {profileUrl
-                        ? <a
-                            href={profileUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className={`${styles.username} ${styles.usernameLink} cc-text-medium-bold cc-user-username-component cc-user-username-white cc-user-block-username`}
-                        >
-                            {profile.username || "?"}
-                        </a>
-                        : <span className={`${styles.username} cc-text-medium-bold cc-user-username-component cc-user-username-white cc-user-block-username`}>
-                            {profile.username || "?"}
-                        </span>
-                    }
+                    <ChessComUsername
+                        username={profileWithChessComStatus.username}
+                        status={(profile as any).chessComStatus}
+                        profileUrl={profileUrl}
+                        usernameClassName={`${styles.username} ${styles.usernameLink} cc-text-medium-bold cc-user-username-component cc-user-username-white cc-user-block-username`}
+                    />
 
                     {profile.rating != undefined
                         && <span className={`${styles.rating} cc-text-medium cc-user-rating-white`}>

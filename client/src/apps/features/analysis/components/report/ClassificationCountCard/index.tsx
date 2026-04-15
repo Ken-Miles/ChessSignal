@@ -14,6 +14,7 @@ import {
     classificationColours
 } from "@analysis/constants/classifications";
 import useAnalysisBoardStore from "@analysis/stores/AnalysisBoardStore";
+import ChessComUsername from "@/components/chess/ChessComUsername";
 
 import ClassificationCountCardProps from "./ClassificationCountCardProps";
 import * as styles from "./ClassificationCountCard.module.css";
@@ -48,12 +49,24 @@ function ClassificationCountCard({ analysisGame }: ClassificationCountCardProps)
         <table className={styles.classificationTable}>
             <thead>
                 <th/>
-                <th className={styles.username}>
-                    {analysisGame.players.white.username || "White"}
+                <th>
+                    <ChessComUsername
+                        username={analysisGame.players.white.username}
+                        fallback="White"
+                        status={analysisGame.players.white.chessComStatus}
+                        usernameClassName={styles.username}
+                        hideBadge={true}
+                    />
                 </th>
                 <th/>
-                <th className={styles.username}>
-                    {analysisGame.players.black.username || "Black"}
+                <th>
+                    <ChessComUsername
+                        username={analysisGame.players.black.username}
+                        fallback="Black"
+                        status={analysisGame.players.black.chessComStatus}
+                        usernameClassName={styles.username}
+                        hideBadge={true}
+                    />
                 </th>
             </thead>
 

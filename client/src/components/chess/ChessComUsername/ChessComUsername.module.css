@@ -1,0 +1,68 @@
+.identity {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    min-width: 0;
+    max-width: 100%;
+}
+
+.username {
+    color: inherit;
+    text-decoration: none;
+    min-width: 0;
+}
+
+.username:hover {
+    text-decoration: underline;
+}
+
+.badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    box-sizing: border-box;
+    width: 14px;
+    height: 14px;
+    padding: 1px;
+    line-height: 0;
+    text-decoration: none;
+    border-radius: 3px;
+}
+
+.badge:hover {
+    opacity: 0.88;
+}
+
+.premiumBadge {
+    background-color: var(--color-blue-400, #0069ab);
+    color: var(--color-blue-75, #83defc);
+}
+
+.staffBadge {
+    background-color: var(--color-green-600, #305730);
+    color: var(--color-green-300, #81b64c);
+}
+
+.moderatorBadge {
+    background-color: color-mix(in srgb, #749bbf 20%, transparent);
+    color: #749bbf;
+}
+
+:global(.dark-mode) .moderatorBadge {
+    background-color: color-mix(in srgb, #749bbf 20%, transparent);
+    color: #749bbf;
+}
+
+.iconGlyph {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+}
+
+.iconGlyph svg {
+    display: block;
+    transform: translateX(-0.1px);
+}

@@ -10,7 +10,7 @@ import useAnalysisGameStore from "@analysis/stores/AnalysisGameStore";
 import useAnalysisBoardStore from "@analysis/stores/AnalysisBoardStore";
 import parseStateTree from "shared/lib/stateTree/parse";
 import {
-    getChessComProfileImages,
+    getChessComProfileDetails,
     isGameFromChessCom
 } from "@/lib/profileImages";
 import {
@@ -205,9 +205,14 @@ function useImportGame() {
 
         // Load profile images from Chess.com if it is possible
         if (isGameFromChessCom(importedGame!)) {
-            getChessComProfileImages(importedGame!).then(images => {
-                analysisGame.players.white.image = images.white;
-                analysisGame.players.black.image = images.black;
+            Promise.all([
+                getChessComProfileDetails(analysisGame.players.white.username || ""),
+                getChessComProfileDetails(analysisGame.players.black.username || "")
+            ]).then(([ whiteProfile, blackProfile ]) => {
+                analysisGame.players.white.image = whiteProfile.image;
+                analysisGame.players.black.image = blackProfile.image;
+                analysisGame.players.white.chessComStatus = whiteProfile.status;
+                analysisGame.players.black.chessComStatus = blackProfile.status;
 
                 setAnalysisGame(analysisGame);
             });

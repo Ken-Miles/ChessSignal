@@ -1,4 +1,4 @@
-import React, { lazy } from "react";
+import React, { lazy, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
@@ -11,7 +11,12 @@ import useAnalysisBoardStore from "@analysis/stores/AnalysisBoardStore";
 import useAnalysisTabStore from "@analysis/stores/AnalysisTabStore";
 import ClassifiedMoveCard from "@analysis/components/report/ClassifiedMoveCard";
 import StateTreeTraverser from "@/components/chess/StateTreeTraverser";
-import { analysisSelectionUrlKeys, updateAnalysisSelectionUrl } from "@analysis/lib/selectionUrl";
+import {
+    analysisSelectionUrlKeys,
+    getAnalysisMovePlyFromUrl,
+    updateAnalysisMoveUrl,
+    updateAnalysisSelectionUrl
+} from "@analysis/lib/selectionUrl";
 
 import AnalysisProgress from "./AnalysisProgress";
 import RealtimeEngineArea from "./RealtimeEngineArea";
@@ -25,6 +30,18 @@ import AnalysisPanelProps from "./AnalysisPanelProps";
 import * as styles from "./AnalysisPanel.module.css";
 
 const OptionsToolbar = lazy(() => import("@analysis/components/OptionsToolbar"));
+
+function getNodePly(node: { parent?: unknown }) {
+    let ply = 0;
+    let current = node;
+
+    while (current?.parent) {
+        ply++;
+        current = current.parent as { parent?: unknown };
+    }
+
+    return ply;
+}
 
 function AnalysisPanel({
     className,
@@ -42,6 +59,22 @@ function AnalysisPanel({
     const currentNode = useAnalysisBoardStore(
         state => state.currentStateTreeNode
     );
+
+    useEffect(() => {
+        if (!gameAnalysisOpen) return;
+
+        const currentMovePly = getNodePly(currentNode);
+        const movePlyFromUrl = getAnalysisMovePlyFromUrl(searchParams);
+
+        if (movePlyFromUrl == currentMovePly) return;
+
+        setSearchParams(updateAnalysisMoveUrl(searchParams, currentMovePly));
+    }, [
+        currentNode.id,
+        gameAnalysisOpen,
+        searchParams,
+        setSearchParams
+    ]);
 
     const { activeTab, setActiveTab } = useAnalysisTabStore();
 

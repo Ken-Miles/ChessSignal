@@ -49,7 +49,8 @@ router.post("/analysis/archive/add", async (req, res) => {
     if (!analysedGameSchema.safeParse(analysedGame).success)
         return res.sendStatus(StatusCodes.BAD_REQUEST);
 
-    const gameId = req.query.id?.toString();
+    const gameId = req.query.gameId?.toString()
+        || req.query.id?.toString();
 
     const existingGame = gameId
         ? await ArchivedGame.findById(gameId)

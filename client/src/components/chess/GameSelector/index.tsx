@@ -389,11 +389,18 @@ function GameSelector({
                 setBoardFlipped(usersColour == PieceColour.BLACK);
 
                 if (syncUrlState) {
+                    const selectedChessComInput = gameSource.key == GameSource.CHESS_COM.key
+                        ? buildProductionChessComFieldInput(
+                            parseProductionChessComFields(currentFieldInput).username,
+                            getChessComSelectionInput(game)
+                        )
+                        : (gameSource.key == GameSource.CHESS_COM_LIVE.key && game
+                            ? getChessComSelectionInput(game)
+                            : currentFieldInput);
+
                     persistUrlSelection(
                         gameSource.key,
-                        (gameSource.key == GameSource.CHESS_COM.key || gameSource.key == GameSource.CHESS_COM_LIVE.key) && game
-                            ? getChessComSelectionInput(game)
-                            : currentFieldInput,
+                        selectedChessComInput,
                         usersColour == PieceColour.BLACK ? "black" : "white"
                     );
                 }

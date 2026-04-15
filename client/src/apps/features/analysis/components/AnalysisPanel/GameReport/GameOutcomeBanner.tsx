@@ -7,6 +7,14 @@ import * as styles from "./GameReport.module.css";
 
 import iconDefaultProfileImage from "@assets/img/defaultprofileimage.png";
 
+function formatOutcomeReason(reason?: string) {
+    if (!reason) return undefined;
+
+    if (!reason[0]) return reason;
+
+    return reason[0].toUpperCase() + reason.slice(1);
+}
+
 function GameOutcomeBanner() {
     const analysisGame = useAnalysisGameStore(state => state.analysisGame);
     const [ winnerImageLoadFailed, setWinnerImageLoadFailed ] = useState(false);
@@ -26,6 +34,7 @@ function GameOutcomeBanner() {
     const winnerImage = winnerImageLoadFailed
         ? iconDefaultProfileImage
         : (winnerProfile?.image || iconDefaultProfileImage);
+    const outcomeReason = formatOutcomeReason(summary?.reason);
 
     useEffect(() => {
         setWinnerImageLoadFailed(false);
@@ -56,8 +65,8 @@ function GameOutcomeBanner() {
                 {summary.title}
             </span>
 
-            {summary.detail && <span className={styles.outcomeDetail}>
-                {summary.detail}
+            {outcomeReason && <span className={styles.outcomeExactResult}>
+                by {outcomeReason}
             </span>}
         </div>
     </div>;

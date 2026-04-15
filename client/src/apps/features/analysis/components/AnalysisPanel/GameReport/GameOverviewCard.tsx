@@ -12,6 +12,7 @@ import {
     classificationImages,
     classificationColours
 } from "@analysis/constants/classifications";
+import ChessComUsername from "@/components/chess/ChessComUsername";
 
 import * as styles from "./GameOverviewCard.module.css";
 
@@ -81,17 +82,33 @@ function GameOverviewCard({ analysisGame, accuracies }: GameOverviewCardProps) {
         ];
     }, [nodeChain]);
 
-    const whitePlayer = analysisGame.players.white;
-    const blackPlayer = analysisGame.players.black;
+    const whitePlayer = analysisGame.players.white as typeof analysisGame.players.white & {
+        chessComStatus?: string;
+    };
+    const blackPlayer = analysisGame.players.black as typeof analysisGame.players.black & {
+        chessComStatus?: string;
+    };
 
     return <section className={styles.wrapper}>
         <div className={styles.headerRow}>
             <span className={styles.headerSpacer}/>
-            <span className={`${styles.cell} ${styles.playerName}`}>
-                {whitePlayer.username || "White"}
+            <span className={styles.cell}>
+                <ChessComUsername
+                    username={whitePlayer.username}
+                    fallback="White"
+                    status={(whitePlayer as any).chessComStatus}
+                    usernameClassName={styles.playerName}
+                    hideBadge={true}
+                />
             </span>
-            <span className={`${styles.cell} ${styles.playerName}`}>
-                {blackPlayer.username || "Black"}
+            <span className={styles.cell}>
+                <ChessComUsername
+                    username={blackPlayer.username}
+                    fallback="Black"
+                    status={(blackPlayer as any).chessComStatus}
+                    usernameClassName={styles.playerName}
+                    hideBadge={true}
+                />
             </span>
         </div>
 

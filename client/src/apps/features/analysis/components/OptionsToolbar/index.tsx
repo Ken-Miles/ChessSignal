@@ -20,6 +20,10 @@ import ShareDialog from "../ShareDialog";
 import displayToast from "@/lib/toast";
 import { archiveGame } from "@/lib/gameArchive";
 import {
+    analysisArchiveUrlKeyList,
+    analysisMoveUrlKeys,
+    getAnalysisArchiveGameIdFromUrl,
+    updateAnalysisArchiveGameIdUrl,
     analysisSelectionUrlKeyList,
     updateAnalysisPerspectiveUrl
 } from "@analysis/lib/selectionUrl";
@@ -77,7 +81,11 @@ function OptionsToolbar() {
     function back() {
         setSearchParams(omit(
             Object.fromEntries(searchParams.entries()),
-            ["game", ...analysisSelectionUrlKeyList]
+            [
+                ...analysisArchiveUrlKeyList,
+                ...analysisSelectionUrlKeyList,
+                analysisMoveUrlKeys.move
+            ]
         ));
 
         // Abort any ongoing evaluations or analyses
@@ -100,7 +108,7 @@ function OptionsToolbar() {
 
         const archival = await archiveGame(
             analysisGame,
-            searchParams.get("game") || undefined
+            getAnalysisArchiveGameIdFromUrl(searchParams)
         );
 
         if (archival.status == StatusCodes.INSUFFICIENT_STORAGE)
@@ -115,10 +123,10 @@ function OptionsToolbar() {
             theme: "error"
         });
 
-        setSearchParams({
-            ...Object.fromEntries(searchParams.entries()),
-            game: archival.id
-        });
+        setSearchParams(updateAnalysisArchiveGameIdUrl(
+            searchParams,
+            archival.id
+        ));
 
         setArchiveStatus("idle");
 

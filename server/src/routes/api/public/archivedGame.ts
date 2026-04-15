@@ -8,7 +8,8 @@ import * as Archive from "@/lib/gameArchive";
 const router = Router();
 
 router.get("/archived-game", async (req, res) => {
-    const gameId = req.query.id?.toString();
+    const gameId = req.query.gameId?.toString()
+        || req.query.id?.toString();
     if (!gameId) return res.sendStatus(StatusCodes.NOT_FOUND);
 
     const archivedGame = await ArchivedGame.findById(gameId).lean();

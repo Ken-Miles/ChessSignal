@@ -19,6 +19,77 @@ const moveSounds = {
     gameEnd: iconGameend
 };
 
+type MoveSoundKey = keyof typeof moveSounds;
+
+const cachedMoveSounds: Partial<Record<MoveSoundKey, HTMLAudioElement>> = {};
+let queuedSoundAfterUnlock: MoveSoundKey | undefined;
+let audioUnlockListenerAttached = false;
+
+function isBrowserRuntime() {
+    return typeof window != "undefined" && typeof Audio != "undefined";
+}
+
+function getCachedMoveSound(sound: MoveSoundKey) {
+    if (!isBrowserRuntime()) {
+        return;
+    }
+
+    const existingAudio = cachedMoveSounds[sound];
+    if (existingAudio) {
+        return existingAudio;
+    }
+
+    const createdAudio = new Audio(moveSounds[sound]);
+
+    createdAudio.preload = "auto";
+    createdAudio.volume = 1;
+
+    cachedMoveSounds[sound] = createdAudio;
+
+    return createdAudio;
+}
+
+function tryPlaySound(sound: MoveSoundKey) {
+    const audio = getCachedMoveSound(sound);
+    if (!audio) return;
+
+    audio.currentTime = 0;
+
+    const playback = audio.play();
+
+    if (!playback || typeof playback.catch != "function") {
+        return;
+    }
+
+    playback.catch(() => {
+        queuedSoundAfterUnlock = sound;
+        attachAudioUnlockListener();
+    });
+}
+
+function attachAudioUnlockListener() {
+    if (!isBrowserRuntime()) return;
+    if (audioUnlockListenerAttached) return;
+
+    const unlockAudio = () => {
+        if (queuedSoundAfterUnlock) {
+            const queuedSound = queuedSoundAfterUnlock;
+            queuedSoundAfterUnlock = undefined;
+            tryPlaySound(queuedSound);
+        }
+
+        window.removeEventListener("pointerdown", unlockAudio);
+        window.removeEventListener("keydown", unlockAudio);
+
+        audioUnlockListenerAttached = false;
+    };
+
+    window.addEventListener("pointerdown", unlockAudio, { once: true });
+    window.addEventListener("keydown", unlockAudio, { once: true });
+
+    audioUnlockListenerAttached = true;
+}
+
 function playBoardSound(node: StateTreeNode) {
     const move = node.state.move;
     if (!move) return;
@@ -26,21 +97,21 @@ function playBoardSound(node: StateTreeNode) {
     const board = new Chess(node.state.fen);
 
     if (board.isGameOver()) {
-        new Audio(moveSounds.gameEnd).play();
+        tryPlaySound("gameEnd");
     }
 
     const parsedMove = parseSanMove(move.san);
 
     if (parsedMove.check || parsedMove.checkmate) {
-        new Audio(moveSounds.check).play();
+        tryPlaySound("check");
     } else if (parsedMove.castling) {
-        new Audio(moveSounds.castle).play();
+        tryPlaySound("castle");
     } else if (parsedMove.promotion) {
-        new Audio(moveSounds.promote).play();
+        tryPlaySound("promote");
     } else if (parsedMove.capture) {
-        new Audio(moveSounds.capture).play();
+        tryPlaySound("capture");
     } else {
-        new Audio(moveSounds.move).play();
+        tryPlaySound("move");
     }
 }
 

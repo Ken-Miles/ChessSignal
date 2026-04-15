@@ -60,6 +60,15 @@ function getChessComEndReason(reason?: string): GameOutcomeReason | undefined {
     return undefined;
 }
 
+function getPgnEndReason(pgn?: string): GameOutcomeReason | undefined {
+    if (!pgn) return undefined;
+
+    const terminationMatch = pgn.match(/\[Termination\s+"([^"]+)"\]/i);
+    const terminationValue = terminationMatch?.[1]?.trim();
+
+    return getChessComEndReason(terminationValue);
+}
+
 function getTerminalBoardReason(board: Chess): GameOutcomeReason | undefined {
     if (board.isCheckmate()) return "checkmate";
     if (board.isStalemate()) return "stalemate";
@@ -99,8 +108,9 @@ function getOutcomeContext(game: AnalysedGame) {
     const sourceReason = getChessComEndReason(
         (game.source?.chessCom as { gameEndReason?: string } | undefined)?.gameEndReason
     );
+    const pgnReason = getPgnEndReason(game.pgn);
     const boardReason = getTerminalBoardReason(finalBoard);
-    const reason: GameOutcomeReason | undefined = boardReason || sourceReason;
+    const reason: GameOutcomeReason | undefined = sourceReason || pgnReason || boardReason;
     const whiteResult = getWhiteResult(game, finalBoard);
 
     return {

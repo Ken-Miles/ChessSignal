@@ -13,6 +13,8 @@ import { getArchivedGame } from "@/lib/gameArchive";
 import { GameSource } from "@/components/chess/GameSelector/GameSource";
 import useSettingsStore from "@/stores/SettingsStore";
 import {
+    getAnalysisArchiveGameIdFromUrl,
+    getAnalysisMovePlyFromUrl,
     analysisSelectionUrlKeyList,
     getAnalysisSelectionFromUrl
 } from "@analysis/lib/selectionUrl";
@@ -141,13 +143,33 @@ function findFinalMainlineNode(root: StateTreeNode) {
     return current;
 }
 
+function findMainlineNodeAtPly(root: StateTreeNode, ply: number) {
+    let current: StateTreeNode = root;
+    let remainingPly = Math.max(0, Math.trunc(ply));
+
+    while (remainingPly > 0) {
+        const nextNode = current.children.find(child => child.mainline)
+            || current.children[0] as StateTreeNode | undefined;
+
+        if (!nextNode) {
+            break;
+        }
+
+        current = nextNode;
+        remainingPly--;
+    }
+
+    return current;
+}
+
 function useGameLoader() {
     const engineVersion = useSettingsStore(
         state => state.settings.analysis.engine.version
     );
 
     const [ searchParams, setSearchParams ] = useSearchParams();
-    const archivedGameId = searchParams.get("game");
+    const archivedGameId = getAnalysisArchiveGameIdFromUrl(searchParams);
+    const initialMovePly = getAnalysisMovePlyFromUrl(searchParams);
     const selectionSignature = analysisSelectionUrlKeyList
         .map(key => searchParams.get(key) || "")
         .join("|");
@@ -230,6 +252,7 @@ function useGameLoader() {
             cacheKey?: string;
             skipEvaluation?: boolean;
             jumpToEnd?: boolean;
+            initialMovePly?: number;
         }
     ) {
         if (options?.boardFlipped != undefined) {
@@ -241,9 +264,11 @@ function useGameLoader() {
         setAutoplayEnabled(false);
         setGameAnalysisOpen(true);
         setAnalysisGame(game);
-        setCurrentStateTreeNode(options?.jumpToEnd
-            ? (findFinalMainlineNode(game.stateTree) || game.stateTree)
-            : game.stateTree);
+        setCurrentStateTreeNode(options?.initialMovePly != undefined
+            ? findMainlineNodeAtPly(game.stateTree, options.initialMovePly)
+            : (options?.jumpToEnd
+                ? (findFinalMainlineNode(game.stateTree) || game.stateTree)
+                : game.stateTree));
         setDisplayedEngineLines(game.stateTree.state.engineLines);
         persistLoadedGame(options?.cacheKey, game);
 
@@ -260,25 +285,31 @@ function useGameLoader() {
     }
 
     async function loadGame() {
-        const gameId = searchParams.get("game");
+        const gameId = getAnalysisArchiveGameIdFromUrl(searchParams);
         if (!gameId) return;
 
         const cachedGame = archivedCacheKey
             ? getCachedLoadedGame(archivedCacheKey)
             : undefined;
         if (cachedGame) {
-            await applyLoadedGame(cachedGame, { cacheKey: archivedCacheKey });
+            await applyLoadedGame(cachedGame, {
+                cacheKey: archivedCacheKey,
+                initialMovePly
+            });
             return;
         }
 
         const { game } = await getArchivedGame(gameId);
         if (!game) return;
 
-        await applyLoadedGame(game, { cacheKey: archivedCacheKey });
+        await applyLoadedGame(game, {
+            cacheKey: archivedCacheKey,
+            initialMovePly
+        });
     }
 
     async function loadSelectionGame() {
-        if (searchParams.get("game")) return;
+        if (getAnalysisArchiveGameIdFromUrl(searchParams)) return;
         if (!analysisSelectionUrlKeyList.some(key => searchParams.has(key))) return;
 
         if (!selection.input) return;
@@ -291,6 +322,7 @@ function useGameLoader() {
         if (cachedGame) {
             await applyLoadedGame(cachedGame, {
                 cacheKey: selectionCacheKey,
+                initialMovePly,
                 boardFlipped: selection.perspective == "white"
                     ? false
                     : (selection.perspective == "black"
@@ -326,6 +358,7 @@ function useGameLoader() {
 
         await applyLoadedGame(analysisGame, {
             cacheKey: shouldUseSelectionCache ? selectionCacheKey : undefined,
+            initialMovePly,
             boardFlipped: selection.perspective == "white"
                 ? false
                 : (selection.perspective == "black"
@@ -362,7 +395,7 @@ function useGameLoader() {
 
         if (!gameAnalysisOpen) return;
         if (!analysisGame) return;
-        if (searchParams.get("game")) return;
+        if (getAnalysisArchiveGameIdFromUrl(searchParams)) return;
         if (!liveMetadata?.isLiveOngoing) return;
         if (!livePollingGameId) return;
 
