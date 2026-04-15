@@ -66,6 +66,10 @@
     font-weight: 600;
 }
 
+.countryFlag {
+    margin-left: 2px;
+}
+
 .capturesRow {
     display: flex;
     align-items: center;

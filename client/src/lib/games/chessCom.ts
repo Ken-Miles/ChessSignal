@@ -368,6 +368,7 @@ function parsePublicChessComGames(rawGames: any[] | undefined): Game[] {
             initialPosition: game["initial_setup"] || STARTING_FEN,
             source: {
                 chessCom: {
+                    timeClass: game["time_class"],
                     gameId: parseChessComGameSelection(game.url || "")?.gameId
                         || `${game.id}`,
                     gameType: parseChessComGameSelection(game.url || "")?.gameType

@@ -213,6 +213,10 @@ function useImportGame() {
                 analysisGame.players.black.image = blackProfile.image;
                 analysisGame.players.white.chessComStatus = whiteProfile.status;
                 analysisGame.players.black.chessComStatus = blackProfile.status;
+                analysisGame.players.white.chessComCountryCode = whiteProfile.countryCode;
+                analysisGame.players.black.chessComCountryCode = blackProfile.countryCode;
+                analysisGame.players.white.chessComCountryName = whiteProfile.countryName;
+                analysisGame.players.black.chessComCountryName = blackProfile.countryName;
 
                 setAnalysisGame(analysisGame);
             });

@@ -10,6 +10,7 @@ export interface GameSourceMetadata {
     chessCom?: {
         gameId?: string;
         gameType?: string;
+        timeClass?: string;
         gameUrl?: string;
         gameEndReason?: string;
         liveGameId?: string;
@@ -47,6 +48,7 @@ export const gameSchema = z.object({
         chessCom: z.object({
             gameId: z.string().optional(),
             gameType: z.string().optional(),
+            timeClass: z.string().optional(),
             gameUrl: z.string().optional(),
             gameEndReason: z.string().optional(),
             liveGameId: z.string().optional(),

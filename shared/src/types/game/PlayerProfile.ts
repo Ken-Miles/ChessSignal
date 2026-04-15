@@ -5,7 +5,9 @@ export const playerProfileSchema = z.object({
     rating: z.number(),
     title: z.string(),
     image: z.string(),
-    chessComStatus: z.string()
+    chessComStatus: z.string(),
+    chessComCountryCode: z.string(),
+    chessComCountryName: z.string()
 }).partial();
 
 export type PlayerProfile = z.infer<typeof playerProfileSchema>;

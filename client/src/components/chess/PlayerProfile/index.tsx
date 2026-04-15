@@ -4,6 +4,7 @@ import { Chess } from "chess.js";
 import PieceColour from "shared/constants/PieceColour";
 
 import ChessComUsername from "@/components/chess/ChessComUsername";
+import ChessComCountryFlag from "@/components/chess/ChessComCountryFlag";
 
 import PlayerProfileProps from "./PlayerProfileProps";
 import * as styles from "./PlayerProfile.module.css";
@@ -101,9 +102,9 @@ function PlayerProfile({
     const [ liveClockDisplayMs, setLiveClockDisplayMs ] = useState<number | undefined>(clockTimeMs);
     const initialClockTimeMsRef = useRef<number>();
     const displayedClockMs = liveClockDisplayMs;
-    const profileWithChessComStatus = profile as typeof profile & {
-        chessComStatus?: string;
-    };
+    const chessComStatus = (profile as any).chessComStatus as string | undefined;
+    const chessComCountryCode = (profile as any).chessComCountryCode as string | undefined;
+    const chessComCountryName = (profile as any).chessComCountryName as string | undefined;
     const hasClockTime = displayedClockMs != undefined
         && !Number.isNaN(displayedClockMs);
     const isLowTimeValue = displayedClockMs != undefined
@@ -234,8 +235,8 @@ function PlayerProfile({
                     </span>}
 
                     <ChessComUsername
-                        username={profileWithChessComStatus.username}
-                        status={(profile as any).chessComStatus}
+                        username={profile.username}
+                        status={chessComStatus}
                         profileUrl={profileUrl}
                         usernameClassName={`${styles.username} ${styles.usernameLink} cc-text-medium-bold cc-user-username-component cc-user-username-white cc-user-block-username`}
                     />
@@ -245,6 +246,12 @@ function PlayerProfile({
                             ({profile.rating})
                         </span>
                     }
+
+                    <ChessComCountryFlag
+                        countryCode={chessComCountryCode}
+                        countryName={chessComCountryName}
+                        className={styles.countryFlag}
+                    />
                 </div>
 
                 <div className={styles.capturesRow}>

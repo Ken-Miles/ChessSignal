@@ -34,6 +34,20 @@ const timeControlIcons = {
     [TimeControl.CORRESPONDENCE]: iconTimeControlsCorrespondence
 };
 
+const chessComGameTypeIcons = {
+    live: iconTimeControlsBlitz,
+    daily: iconTimeControlsCorrespondence,
+    computer: iconTimeControlsClassical,
+    master: iconTimeControlsClassical
+} as const;
+
+const chessComTimeClassIcons = {
+    bullet: iconTimeControlsBullet,
+    blitz: iconTimeControlsBlitz,
+    rapid: iconTimeControlsRapid,
+    daily: iconTimeControlsCorrespondence
+} as const;
+
 // Gets a game result icon from white's result
 const gameResultIcons = {
     unopinionated: {
@@ -84,6 +98,34 @@ function GameListing<T extends GameListingMetadata>({
 
     const listingId = useMemo(uniqueId, []);
 
+    const leftIcon = useMemo(() => {
+        const chessComTimeClass = game.source?.chessCom?.timeClass;
+        const chessComGameType = game.source?.chessCom?.gameType;
+
+        if (chessComTimeClass && chessComTimeClass in chessComTimeClassIcons) {
+            return {
+                src: chessComTimeClassIcons[chessComTimeClass as keyof typeof chessComTimeClassIcons],
+                title: chessComTimeClass
+            };
+        }
+
+        if (chessComGameType && chessComGameType in chessComGameTypeIcons) {
+            return {
+                src: chessComGameTypeIcons[chessComGameType as keyof typeof chessComGameTypeIcons],
+                title: chessComGameType
+            };
+        }
+
+        if (game.timeControl) {
+            return {
+                src: timeControlIcons[game.timeControl],
+                title: game.timeControl
+            };
+        }
+
+        return;
+    }, [game]);
+
     function copyPGN() {
         if (!game.pgn) return;
 
@@ -112,11 +154,11 @@ function GameListing<T extends GameListingMetadata>({
             onClick={event => event.stopPropagation()}
         />}
         
-        {game.timeControl && <div style={{ width: "30px" }}>
+        {leftIcon && <div style={{ width: "30px" }}>
             <img
                 className={styles.timeControlIcon}
-                src={timeControlIcons[game.timeControl]}
-                title={game.timeControl}
+                src={leftIcon.src}
+                title={leftIcon.title}
             />
         </div>}
 

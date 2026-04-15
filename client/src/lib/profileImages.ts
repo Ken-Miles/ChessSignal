@@ -7,12 +7,59 @@ import iconDefaultProfileImage from "@assets/img/defaultprofileimage.png";
 type ChessComProfileResponse = {
     avatar?: string;
     status?: string;
+    country?: string;
+};
+
+type ChessComCountryResponse = {
+    code?: string;
+    name?: string;
 };
 
 export type ChessComProfileDetails = {
     image: string;
     status?: string;
+    countryCode?: string;
+    countryName?: string;
 };
+
+const chessComCountryRequestCache = new Map<string, Promise<{
+    countryCode?: string;
+    countryName?: string;
+}>>();
+
+async function getChessComCountryDetails(countryUrl?: string) {
+    if (!countryUrl) {
+        return {};
+    }
+
+    const cachedRequest = chessComCountryRequestCache.get(countryUrl);
+    if (cachedRequest) {
+        return cachedRequest;
+    }
+
+    const countryRequest = (async () => {
+        try {
+            const countryResponse = await fetch(countryUrl);
+
+            if (!countryResponse.ok) {
+                return {};
+            }
+
+            const country = await countryResponse.json() as ChessComCountryResponse;
+
+            return {
+                countryCode: country.code?.toLowerCase(),
+                countryName: country.name
+            };
+        } catch {
+            return {};
+        }
+    })();
+
+    chessComCountryRequestCache.set(countryUrl, countryRequest);
+
+    return await countryRequest;
+}
 
 export function isGameFromChessCom(game: Game) {
     const board = new Chess();
@@ -39,9 +86,13 @@ async function fetchChessComProfileDetails(
 
         const profile = await profileResponse.json() as ChessComProfileResponse;
 
+        const countryDetails = await getChessComCountryDetails(profile.country);
+
         return {
             image: profile.avatar || iconDefaultProfileImage,
-            status: profile.status
+            status: profile.status,
+            countryCode: countryDetails.countryCode,
+            countryName: countryDetails.countryName
         };
     } catch {
         return { image: iconDefaultProfileImage };

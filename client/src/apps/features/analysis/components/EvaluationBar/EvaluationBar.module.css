@@ -57,7 +57,7 @@
 
 .exactEvaluationTooltip {
     position: absolute;
-    left: calc(100% + 6px);
+    right: calc(100% + 6px);
     top: 50%;
     transform: translateY(-50%);
     display: flex;

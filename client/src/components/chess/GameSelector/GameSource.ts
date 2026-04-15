@@ -36,6 +36,7 @@ export const GameSource: Record<GameSourceType, GameSourceData> = {
         expandField: false,
         selectorButton: GameSelectorButton.SEARCH_GAMES
     },
+    // CHESS_COM_LIVE is intentionally kept for legacy URL handling, but is no longer selectable.
     CHESS_COM_LIVE: {
         key: "CHESS_COM_LIVE",
         title: "Chess.com Live",
@@ -50,9 +51,8 @@ export const GameSource: Record<GameSourceType, GameSourceData> = {
 };
 
 export function getSelectableGameSources() {
-    return Object.values(GameSource).filter(source => !(
-        isProductionMode
-        && source.key == GameSource.CHESS_COM_LIVE.key
+    return Object.values(GameSource).filter(source => (
+        source.key != GameSource.CHESS_COM_LIVE.key
     ));
 }
 
